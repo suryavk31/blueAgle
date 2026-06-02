@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: #f5f7fd;
+    /* BlueAgle off-white/light-blue tint */
+    color: #1a1a1a;
+}
+
+@layer utilities {
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+@layer utilities {
+    .bg-gradient-brand {
+        background: linear-gradient(135deg, #3c006b 0%, #7c1a96 100%);
+    }
+
+    .text-brand {
+        color: #3c006b;
+    }
+
+    .text-accent-red {
+        color: #ff3269;
+    }
+
+    .bg-accent-red {
+        background-color: #ff3269;
+    }
+
+    .border-accent-red {
+        border-color: #ff3269;
+    }
+}
