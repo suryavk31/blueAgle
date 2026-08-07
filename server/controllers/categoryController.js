@@ -1,5 +1,6 @@
 const { Category, SubCategory } = require('../models');
 const { uploadToImageKit } = require('../utils/imageKitHelper');
+const { autoCreateCategorySeo } = require('../services/seoSyncEngine');
 
 // Categories
 const getCategories = async (req, res) => {
@@ -20,6 +21,12 @@ const createCategory = async (req, res) => {
             image = result.url;
         }
         const category = await Category.create({ name, image });
+
+        // ── Auto-generate SEO for the new category (fire-and-forget) ──────────
+        autoCreateCategorySeo(category, req.user?.email || 'system').catch(e =>
+            console.warn('[SEO Auto] Category SEO creation failed:', e.message)
+        );
+
         res.status(201).json(category);
     } catch (error) {
         res.status(500).json({ message: error.message });

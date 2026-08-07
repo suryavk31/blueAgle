@@ -45,7 +45,7 @@ const verifyCoupon = async (req, res) => {
 
         if (!coupon) return res.status(404).json({ message: 'Invalid coupon code' });
         if (!coupon.isActive) return res.status(400).json({ message: 'This coupon is no longer active' });
-        if (new Date(coupon.expiryDate) < new Date()) {
+        if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
             return res.status(400).json({ message: 'Coupon has expired' });
         }
 

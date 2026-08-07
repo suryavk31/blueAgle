@@ -6,11 +6,11 @@ const {
     getTopProducts,
     getCategoryDistribution
 } = require('../controllers/analyticsController');
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const { verifyAdminToken, requirePermission } = require('../middleware/adminAuthMiddleware');
 
-router.get('/stats', verifyToken, isAdmin, getDashboardStats);
-router.get('/sales-chart', verifyToken, isAdmin, getSalesChart);
-router.get('/top-products', verifyToken, isAdmin, getTopProducts);
-router.get('/category-dist', verifyToken, isAdmin, getCategoryDistribution);
+router.get('/stats', verifyAdminToken, requirePermission('Dashboard', 'View'), getDashboardStats);
+router.get('/sales-chart', verifyAdminToken, requirePermission('Dashboard', 'View'), getSalesChart);
+router.get('/top-products', verifyAdminToken, requirePermission('Dashboard', 'View'), getTopProducts);
+router.get('/category-dist', verifyAdminToken, requirePermission('Dashboard', 'View'), getCategoryDistribution);
 
 module.exports = router;

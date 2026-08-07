@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const { sequelize } = require('./models'); // Import from models/index.js to load associations
 const path = require('path');
 require('dotenv').config();
+
+const { sequelize } = require('./models');
 
 const app = express();
 
@@ -13,50 +14,100 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (uploaded images)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// ─── Customer Routes ──────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const couponRoutes = require('./routes/couponRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const policyRoutes = require('./routes/policyRoutes');
+const userRoutes = require('./routes/userRoutes');
+const adRoutes = require('./routes/adRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const addressRoutes = require('./routes/addressRoutes');
+const seoRoutes = require('./routes/seoRoutes');
+const { generateSitemap } = require('./controllers/sitemapController');
+const { generateRobotsTxt } = require('./controllers/robotsController');
+
+const accountDeletionRoutes = require('./routes/accountDeletionRoutes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/account', accountDeletionRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
-
-const cartRoutes = require('./routes/cartRoutes');
 app.use('/api/cart', cartRoutes);
-
-const couponRoutes = require('./routes/couponRoutes');
 app.use('/api/coupons', couponRoutes);
-
-const orderRoutes = require('./routes/orderRoutes');
 app.use('/api/orders', orderRoutes);
-
-const policyRoutes = require('./routes/policyRoutes');
 app.use('/api/policies', policyRoutes);
-
-const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
-
-const adRoutes = require('./routes/adRoutes');
 app.use('/api/ads', adRoutes);
-
-const analyticsRoutes = require('./routes/analyticsRoutes');
 app.use('/api/analytics', analyticsRoutes);
-
-const addressRoutes = require('./routes/addressRoutes');
 app.use('/api/addresses', addressRoutes);
+app.use('/api/seo', seoRoutes);
 
-// Test Route
+const productAttrCtrl = require('./controllers/productAttributeController');
+app.get('/api/product-attributes', productAttrCtrl.listAttributes);
+app.post('/api/product-attributes', productAttrCtrl.createAttribute);
+app.put('/api/product-attributes/:id', productAttrCtrl.updateAttribute);
+app.delete('/api/product-attributes/:id', productAttrCtrl.deleteAttribute);
+
+// ─── Admin RBAC Routes ────────────────────────────────────────────────────────
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const adminUsersRoutes = require('./routes/adminUsersRoutes');
+const rolesRoutes = require('./routes/rolesRoutes');
+const modulesRoutes = require('./routes/modulesRoutes');
+const permissionsRoutes = require('./routes/permissionsRoutes');
+const invitationsRoutes = require('./routes/invitationsRoutes');
+const activityLogsRoutes = require('./routes/activityLogsRoutes');
+const invoiceBuilderRoutes = require('./routes/invoiceBuilderRoutes');
+
+app.use('/api/invoice', invoiceBuilderRoutes);
+app.use('/api/admin/invoice-builder', invoiceBuilderRoutes);
+
+app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin/users', adminUsersRoutes);
+app.use('/api/admin/roles', rolesRoutes);
+app.use('/api/admin/modules', modulesRoutes);
+app.use('/api/admin/permissions', permissionsRoutes);
+app.use('/api/admin/invitations', invitationsRoutes);
+app.use('/api/admin/activity-logs', activityLogsRoutes);
+
+// ─── Resource Routes (Admin Aliases for adminApi) ─────────────────────────────
+app.use('/api/admin/analytics', analyticsRoutes);
+app.use('/api/admin/products', productRoutes);
+app.use('/api/admin/categories', categoryRoutes);
+app.use('/api/admin/orders', orderRoutes);
+app.use('/api/admin/coupons', couponRoutes);
+app.use('/api/admin/ads', adRoutes);
+app.use('/api/admin/policies', policyRoutes);
+app.use('/api/admin/seo', seoRoutes);
+app.use('/api/admin/customer-users', userRoutes);
+
+// ─── SEO & Sitemap ────────────────────────────────────────────────────────────
+app.get('/sitemap.xml', generateSitemap);
+app.get('/robots.txt', generateRobotsTxt);
+
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-    res.send('API is running...');
+    res.json({ status: 'ok', message: 'BlueAgle API Service Operational' });
 });
 
-// Database Sync and Server Start
+// ─── Centralized Error Handling ───────────────────────────────────────────────
+app.use((err, req, res, next) => {
+    console.error('Unhandled Error:', err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
+});
+
+// ─── Database Sync and Server Start ──────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ alter: true }) // Set force: true to drop tables on restart
+sequelize.sync()
     .then(() => {
-        console.log('Database connected & synced');
+        console.log('Database connected & synced successfully.');
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });

@@ -24,6 +24,26 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    status: {
+        type: DataTypes.ENUM('Active', 'Deleted', 'Suspended'),
+        defaultValue: 'Active',
+    },
+    deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    deletionReason: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    deletionFeedback: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
+    anonymizedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     timestamps: true,
 });

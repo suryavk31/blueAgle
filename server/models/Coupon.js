@@ -22,7 +22,12 @@ const Coupon = sequelize.define('Coupon', {
     },
     expiryDate: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: () => {
+            const d = new Date();
+            d.setFullYear(d.getFullYear() + 1);
+            return d;
+        }
     },
     isActive: {
         type: DataTypes.BOOLEAN,

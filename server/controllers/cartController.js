@@ -2,12 +2,8 @@ const { Cart, CartItem, Product, User } = require('../models');
 
 const getCart = async (req, res) => {
     try {
-        const userId = req.dbUser.id; // Set by isAdmin or we need a middleware to set dbUser from valid token
-        // Actually verifyToken sets req.user (firebase), we need to resolve to DB user.
-        // Let's assume we add a middleware 'resolveUser' or just do it here.
-
-        // Quick fix: find user by phone from req.user
-        const user = await User.findOne({ where: { phone: req.user.phone_number } });
+        const phone = req.user?.phone_number || req.user?.phone;
+        const user = await User.findOne({ where: { phone } });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         let cart = await Cart.findOne({
@@ -32,7 +28,8 @@ const getCart = async (req, res) => {
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
-        const user = await User.findOne({ where: { phone: req.user.phone_number } });
+        const phone = req.user?.phone_number || req.user?.phone;
+        const user = await User.findOne({ where: { phone } });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         let cart = await Cart.findOne({ where: { userId: user.id } });
@@ -43,7 +40,6 @@ const addToCart = async (req, res) => {
         const product = await Product.findByPk(productId);
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
-        // Check stock
         if (product.stock < quantity) {
             return res.status(400).json({ message: 'Not enough stock' });
         }
@@ -72,11 +68,18 @@ const addToCart = async (req, res) => {
 
 const updateCartItem = async (req, res) => {
     try {
-        const { id } = req.params; // CartItem ID
+        const { id } = req.params;
         const { quantity } = req.body;
+        const phone = req.user?.phone_number || req.user?.phone;
 
-        const cartItem = await CartItem.findByPk(id);
-        if (!cartItem) return res.status(404).json({ message: 'Item not found' });
+        const user = await User.findOne({ where: { phone } });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const cart = await Cart.findOne({ where: { userId: user.id } });
+        if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+        const cartItem = await CartItem.findOne({ where: { id, cartId: cart.id } });
+        if (!cartItem) return res.status(404).json({ message: 'Cart item not found or unauthorized' });
 
         if (quantity <= 0) {
             await cartItem.destroy();
@@ -93,9 +96,17 @@ const updateCartItem = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
     try {
-        const { id } = req.params; // CartItem ID
-        const cartItem = await CartItem.findByPk(id);
-        if (!cartItem) return res.status(404).json({ message: 'Item not found' });
+        const { id } = req.params;
+        const phone = req.user?.phone_number || req.user?.phone;
+
+        const user = await User.findOne({ where: { phone } });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const cart = await Cart.findOne({ where: { userId: user.id } });
+        if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+        const cartItem = await CartItem.findOne({ where: { id, cartId: cart.id } });
+        if (!cartItem) return res.status(404).json({ message: 'Cart item not found or unauthorized' });
 
         await cartItem.destroy();
         res.json({ message: 'Item removed' });
@@ -110,3 +121,4 @@ module.exports = {
     updateCartItem,
     removeFromCart
 };
+

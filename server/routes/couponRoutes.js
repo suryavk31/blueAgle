@@ -3,11 +3,15 @@ const router = express.Router();
 const {
     createCoupon, getCoupons, deleteCoupon, verifyCoupon
 } = require('../controllers/couponController');
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyAdminToken, requirePermission } = require('../middleware/adminAuthMiddleware');
 
-router.post('/', verifyToken, isAdmin, createCoupon);
-router.get('/', verifyToken, isAdmin, getCoupons);
-router.delete('/:id', verifyToken, isAdmin, deleteCoupon);
+// Admin routes (RBAC)
+router.post('/', verifyAdminToken, requirePermission('Coupons', 'Create'), createCoupon);
+router.get('/', verifyAdminToken, requirePermission('Coupons', 'View'), getCoupons);
+router.delete('/:id', verifyAdminToken, requirePermission('Coupons', 'Delete'), deleteCoupon);
+
+// Customer route
 router.post('/verify', verifyToken, verifyCoupon);
 
 module.exports = router;
