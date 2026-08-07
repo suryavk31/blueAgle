@@ -11,30 +11,26 @@ const LABELS = [
     { value: 'Other', icon: FaEllipsisH, color: 'bg-gray-100 text-gray-600 border-gray-300' },
 ];
 
-const AddressForm = ({ addresses, selectedAddress, onSelect, onClose, onRefresh }) => {
+const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRefresh }) => {
     const { currentUser } = useAuth();
-    const [showForm, setShowForm] = useState(addresses.length === 0);
+    const [view, setView] = useState(addresses.length === 0 ? 'FORM' : 'LIST'); // LIST, FORM
     const [label, setLabel] = useState('Home');
     const [flatNo, setFlatNo] = useState('');
     const [floor, setFloor] = useState('');
     const [area, setArea] = useState('');
     const [landmark, setLandmark] = useState('');
-    const [contactName, setContactName] = useState('');
-    const [contactPhone, setContactPhone] = useState('');
+    const [contactName, setContactName] = useState(currentUser?.displayName || '');
+    const [contactPhone, setContactPhone] = useState(currentUser?.phoneNumber || '');
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
 
     const validate = () => {
-        const err = {};
-        if (!flatNo.trim()) err.flatNo = 'Flat/House number is required';
-        if (!area.trim()) err.area = 'Area/Sector/Locality is required';
-        if (!contactName.trim()) err.contactName = 'Name is required';
-        else if (contactName.trim().length < 2) err.contactName = 'Name must be at least 2 characters';
-        if (contactPhone && !/^[6-9]\d{9}$/.test(contactPhone.trim())) {
-            err.contactPhone = 'Enter a valid 10-digit phone number';
-        }
-        setErrors(err);
-        return Object.keys(err).length === 0;
+        const errs = {};
+        if (!flatNo.trim()) errs.flatNo = 'House / Flat / Building No. is required';
+        if (!area.trim()) errs.area = 'Area / Sector / Locality is required';
+        if (!contactName.trim()) errs.contactName = 'Contact Name is required';
+        setErrors(errs);
+        return Object.keys(errs).length === 0;
     };
 
     const handleSave = async () => {
@@ -42,7 +38,7 @@ const AddressForm = ({ addresses, selectedAddress, onSelect, onClose, onRefresh 
         setSaving(true);
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.post('http://localhost:5000/api/addresses', {
+            const res = await api.post('/addresses', {
                 label, flatNo, floor, area, landmark, contactName, contactPhone,
                 isDefault: addresses.length === 0
             }, {
@@ -51,6 +47,7 @@ const AddressForm = ({ addresses, selectedAddress, onSelect, onClose, onRefresh 
             toast.success('Address saved!');
             await onRefresh();
             onSelect(res.data);
+            setView('LIST');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to save address');
         } finally {
@@ -61,7 +58,7 @@ const AddressForm = ({ addresses, selectedAddress, onSelect, onClose, onRefresh 
     const handleDelete = async (id) => {
         try {
             const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/addresses/${id}`, {
+            await api.delete(`/addresses/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success('Address deleted');

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import adminApi from '../../services/adminApi';
+import { getImageUrl } from '../../utils/imageHelper';
 import {
     FaBox, FaShoppingCart, FaUsers, FaChartLine, FaArrowUp, FaArrowDown, FaMoneyBillWave, FaSortAmountUp, FaEllipsisH
 } from 'react-icons/fa';
+
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 
 const Dashboard = () => {
-    const { currentUser } = useAuth();
     const [stats, setStats] = useState(null);
     const [salesData, setSalesData] = useState([]);
     const [topProducts, setTopProducts] = useState([]);
@@ -20,14 +20,12 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = await currentUser.getIdToken();
-                const config = { headers: { Authorization: `Bearer ${token}` } };
-
+                // adminApi automatically attaches the admin JWT
                 const [statsRes, salesRes, topRes, catRes] = await Promise.all([
-                    axios.get('http://localhost:5000/api/analytics/stats', config),
-                    axios.get('http://localhost:5000/api/analytics/sales-chart', config),
-                    axios.get('http://localhost:5000/api/analytics/top-products', config),
-                    axios.get('http://localhost:5000/api/analytics/category-dist', config)
+                    adminApi.get('/analytics/stats'),
+                    adminApi.get('/analytics/sales-chart'),
+                    adminApi.get('/analytics/top-products'),
+                    adminApi.get('/analytics/category-dist')
                 ]);
 
                 setStats(statsRes.data);
@@ -40,8 +38,8 @@ const Dashboard = () => {
                 setLoading(false);
             }
         };
-        if (currentUser) fetchData();
-    }, [currentUser]);
+        fetchData();
+    }, []);
 
     if (loading) return (
         <div className="flex h-[80vh] items-center justify-center">
@@ -244,8 +242,9 @@ const Dashboard = () => {
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-400 overflow-hidden shrink-0 border border-gray-200/50">
                                                 {item.Product?.images?.[0] ? (
-                                                    <img src={`http://localhost:5000${item.Product.images[0]}`} alt="Product" className="w-full h-full object-cover" />
+                                                    <img src={getImageUrl(item.Product.images[0])} alt="Product" className="w-full h-full object-cover" />
                                                 ) : (
+
                                                     <span>{idx + 1}</span>
                                                 )}
                                             </div>

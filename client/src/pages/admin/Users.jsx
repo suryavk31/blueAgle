@@ -1,22 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import adminApi from '../../services/adminApi';
 import { FaUsers, FaSearch, FaUserShield, FaUserCircle } from 'react-icons/fa';
 
 const Users = () => {
-    const { currentUser } = useAuth();
     const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const token = await currentUser.getIdToken();
-                const res = await axios.get('http://localhost:5000/api/users', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await adminApi.get('/customer-users');
                 setUsers(res.data);
             } catch (error) {
                 console.error(error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchUsers();
@@ -54,43 +52,41 @@ const Users = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.length === 0 ? (
-                                <tr>
-                                    <td colSpan="4" className="text-center py-16 text-gray-400 font-medium">No users found.</td>
-                                </tr>
+                            {loading ? (
+                                [...Array(5)].map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-32" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16" /></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20" /></td>
+                                    </tr>
+                                ))
+                            ) : users.length === 0 ? (
+                                <tr><td colSpan={4} className="text-center py-10 text-gray-400 font-medium">No registered customer accounts found.</td></tr>
                             ) : (
-                                users.map((user, idx) => (
-                                    <tr key={user.id} className="group hover:bg-gray-50 shadow-sm bg-white border-y border-gray-50 transition-colors">
-                                        <td className="px-6 py-4 rounded-l-xl border-y border-l border-gray-100 group-hover:border-transparent">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-700 flex items-center justify-center font-bold text-lg border border-indigo-200/50 shrink-0 shadow-sm">
-                                                    {user.name ? user.name[0].toUpperCase() : <FaUserCircle />}
+                                users.map(user => (
+                                    <tr key={user.id} className="bg-gray-50/50 hover:bg-gray-50 transition-all rounded-2xl">
+                                        <td className="px-6 py-4 rounded-l-2xl border-y border-l border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                                                    {user.name?.[0] || 'U'}
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-gray-900 text-base">{user.name || 'Anonymous User'}</span>
-                                                    <span className="text-xs text-gray-400 font-medium mt-0.5">User ID: #{user.id.toString().padStart(4, '0')}</span>
+                                                <div>
+                                                    <p className="font-bold text-gray-900">{user.name || 'Unnamed'}</p>
+                                                    <p className="text-xs text-gray-500">{user.email}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 border-y border-gray-100 group-hover:border-transparent">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-gray-700">{user.phone}</span>
-                                                <span className="text-xs text-indigo-500 font-bold">Verified OTP</span>
-                                            </div>
+                                        <td className="px-6 py-4 border-y border-gray-100 font-medium text-gray-700">
+                                            {user.phone || user.email || '—'}
                                         </td>
-                                        <td className="px-6 py-4 border-y border-gray-100 group-hover:border-transparent">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border 
-                                                ${user.role === 'admin' 
-                                                    ? 'bg-purple-50 text-purple-700 border-purple-200' 
-                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                                                {user.role === 'admin' && <FaUserShield size={10} />}
-                                                <span className="capitalize">{user.role}</span>
+                                        <td className="px-6 py-4 border-y border-gray-100">
+                                            <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-full inline-flex items-center gap-1.5 border border-indigo-100">
+                                                <FaUserShield className="text-indigo-500" /> Customer
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 rounded-r-xl border-y border-r border-gray-100 group-hover:border-transparent">
-                                            <span className="font-bold text-gray-600">
-                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString([], { month: 'short', year: 'numeric' }) : 'N/A'}
-                                            </span>
+                                        <td className="px-6 py-4 rounded-r-2xl border-y border-r border-gray-100 text-xs text-gray-500 font-medium">
+                                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                                         </td>
                                     </tr>
                                 ))

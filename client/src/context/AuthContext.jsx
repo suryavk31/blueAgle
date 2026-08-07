@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import axios from 'axios';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -38,6 +38,11 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
+        // If on admin route or admin token exists, resolve loading immediately for admin panel
+        if (window.location.pathname.startsWith('/admin') || localStorage.getItem('admin_access_token') || localStorage.getItem('staffUser')) {
+            setLoading(false);
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (!mounted) return;
             
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }) => {
                 // Sync with DB and get role
                 try {
                     const token = await user.getIdToken();
-                    const res = await axios.get('http://localhost:5000/api/auth/me', {
+                    const res = await api.get('/auth/me', {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (mounted) setUserData(res.data);
@@ -64,6 +69,7 @@ export const AuthProvider = ({ children }) => {
             }
             if (mounted) setLoading(false);
         });
+
 
         // Safety timeout in case Firebase hangs (e.g. missing config)
         const timer = setTimeout(() => {

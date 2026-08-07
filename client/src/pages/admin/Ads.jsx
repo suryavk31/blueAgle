@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+﻿import React, { useEffect, useState } from 'react';
+import adminApi from '../../services/adminApi';
 import { toast } from 'react-toastify';
 import { FaTrash, FaEdit, FaEye, FaMousePointer, FaChartLine, FaShoppingBag, FaBullhorn, FaPlus, FaSave, FaTimes, FaImage, FaVideo } from 'react-icons/fa';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const Ads = () => {
-    const { currentUser } = useAuth();
     const [ads, setAds] = useState([]);
     const [formData, setFormData] = useState({
         title: '', type: 'banner', mediaType: 'image', redirectUrl: '', location: 'home-top', isActive: true
@@ -16,10 +15,7 @@ const Ads = () => {
 
     const fetchAds = async () => {
         try {
-            const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/ads/admin', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        const res = await adminApi.get('/ads/admin');
             setAds(res.data);
         } catch (error) {
             console.error(error);
@@ -45,31 +41,25 @@ const Ads = () => {
         if (mediaFile) data.append('media', mediaFile);
 
         try {
-            const token = await currentUser.getIdToken();
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            if (editingId) {
-                await axios.put(`http://localhost:5000/api/ads/${editingId}`, data, config);
+                        if (editingId) {
+                await adminApi.put(`/ads/${editingId}`, data);
                 toast.success("Ad Updated Successfully");
             } else {
-                await axios.post('http://localhost:5000/api/ads', data, config);
+                await adminApi.post('/ads', data);
                 toast.success("Ad Created Successfully");
             }
 
             cancelEdit();
             fetchAds();
         } catch (error) {
-            toast.error("Error saving ad");
+            toast.error(error.response?.data?.message || "Error saving ad");
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this ad?")) return;
         try {
-            const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/ads/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        await adminApi.delete(`/ads/${id}`);
             toast.success("Ad Deleted");
             fetchAds();
         } catch (error) {
@@ -88,9 +78,10 @@ const Ads = () => {
         });
         setEditingId(ad.id);
         setMediaFile(null);
-        setMediaPreview(ad.mediaUrl ? `http://localhost:5000${ad.mediaUrl}` : null);
+        setMediaPreview(ad.mediaUrl ? getImageUrl(ad.mediaUrl) : null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
 
     const cancelEdit = () => {
         setEditingId(null);
@@ -274,10 +265,11 @@ const Ads = () => {
                             </div>
 
                             {ad.mediaType === 'video' ? (
-                                <video src={`http://localhost:5000${ad.mediaUrl}`} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105" controls />
+                                <video src={getImageUrl(ad.mediaUrl)} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105" controls />
                             ) : (
-                                <img src={`http://localhost:5000${ad.mediaUrl}`} alt={ad.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105" />
+                                <img src={getImageUrl(ad.mediaUrl)} alt={ad.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105" />
                             )}
+
                             
                             {/* Gradient Overlay for bottom text readability */}
                             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>

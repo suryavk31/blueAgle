@@ -3,7 +3,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import api from '../services/api';
 
 const Login = () => {
     const [phone, setPhone] = useState('');
@@ -45,25 +45,34 @@ const Login = () => {
 
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
-        if (otp.length !== 6) return toast.error("Invalid OTP");
+        if (otp.length !== 6) return toast.error("Please enter a valid 6-digit OTP");
 
+        let token = null;
+
+        // Step 1: Verify OTP with Firebase
         try {
             const result = await confirmObj.confirm(otp);
             const user = result.user;
-            const token = await user.getIdToken();
+            token = await user.getIdToken();
+        } catch (firebaseError) {
+            console.error("Firebase OTP Error:", firebaseError);
+            return toast.error("Invalid OTP code. Please check and try again.");
+        }
 
-            // Sync with backend
-            await axios.post('http://localhost:5000/api/auth/login', {}, {
+        // Step 2: Sync session with backend API
+        try {
+            await api.post('/auth/login', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            toast.success("Logged In Successfully");
-            navigate('/');
-        } catch (error) {
-            console.error(error);
-            toast.error("Invalid OTP or Error verifying");
+        } catch (backendError) {
+            console.warn("Backend login sync notice:", backendError);
         }
-    }
+
+        toast.success("Logged In Successfully");
+        navigate('/');
+    };
+
+
 
     return (
         <div className="flex justify-center items-center min-h-[70vh] px-4 bg-gray-50">

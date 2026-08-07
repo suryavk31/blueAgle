@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+﻿import React, { useEffect, useState } from 'react';
+import adminApi from '../../services/adminApi';
 import { toast } from 'react-toastify';
 import { FaTrash, FaTicketAlt, FaPlus, FaSave, FaPercentage, FaRupeeSign } from 'react-icons/fa';
 
 const Coupons = () => {
-    const { currentUser } = useAuth();
     const [coupons, setCoupons] = useState([]);
     const [formData, setFormData] = useState({
         code: '', discountType: 'fixed', value: '', expiryDate: '', isActive: true
@@ -13,10 +11,7 @@ const Coupons = () => {
 
     const fetchCoupons = async () => {
         try {
-            const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/coupons', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        const res = await adminApi.get('/coupons');
             setCoupons(res.data);
         } catch (error) {
             console.error(error);
@@ -30,10 +25,7 @@ const Coupons = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const token = await currentUser.getIdToken();
-            await axios.post('http://localhost:5000/api/coupons', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        await adminApi.post('/coupons', formData);
             toast.success("Coupon Created Successfully");
             setFormData({ code: '', discountType: 'fixed', value: '', expiryDate: '', isActive: true });
             fetchCoupons();
@@ -45,10 +37,7 @@ const Coupons = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this coupon?")) return;
         try {
-            const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/coupons/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        await adminApi.delete(`/coupons/${id}`);
             toast.success("Coupon Deleted");
             fetchCoupons();
         } catch (error) {

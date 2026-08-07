@@ -38,7 +38,7 @@ const Profile = () => {
             if (!currentUser) { setLoading(false); return; }
             try {
                 const token = await currentUser.getIdToken();
-                const res = await axios.get('http://localhost:5000/api/orders/my-orders', {
+                const res = await api.get('/orders/my-orders', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setOrders(res.data);
@@ -254,29 +254,52 @@ const Profile = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Address & Payment */}
+                                            {/* Delivery Address & Invoice Download */}
                                             <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 {/* Delivery Address */}
                                                 {order.address && (
                                                     <div className="bg-gray-50 rounded-xl p-3.5">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <FaMapMarkerAlt className="text-[#ff3269] text-xs" />
-                                                            <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Delivery Address</span>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <FaMapMarkerAlt className="text-[#ff3269] text-xs" />
+                                                                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Delivery Address</span>
+                                                            </div>
                                                         </div>
                                                         {typeof order.address === 'object' ? (
                                                             <>
                                                                 <p className="text-sm text-gray-700 font-medium">{order.address.flatNo}</p>
                                                                 <p className="text-xs text-gray-500">{order.address.area}</p>
                                                                 {order.address.landmark && <p className="text-xs text-gray-400">Near: {order.address.landmark}</p>}
-                                                                <p className="text-xs text-gray-500 mt-1">{order.address.contactName} • {order.address.contactPhone}</p>
                                                             </>
                                                         ) : (
-                                                            <p className="text-sm text-gray-700 font-medium">{order.address}</p>
+                                                            <p className="text-xs text-gray-600">{order.address}</p>
                                                         )}
                                                     </div>
                                                 )}
 
-                                                {/* Payment */}
+                                                {/* Invoice Download Action */}
+                                                <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3.5 flex flex-col justify-between">
+                                                    <div>
+                                                        <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider block mb-1">Official Tax Invoice</span>
+                                                        <p className="text-xs text-indigo-600">Download or print your official transaction receipt for Order #{order.id}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                window.open(`/api/invoice/order/${order.id}/render`, '_blank');
+                                                            } catch {
+                                                                alert('Invoice rendering in progress...');
+                                                            }
+                                                        }}
+                                                        className="mt-3 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-indigo-500/20"
+                                                    >
+                                                        📄 Print / Download Invoice
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Payment */}
+                                            <div className="px-5 pb-5">
                                                 <div className="bg-gray-50 rounded-xl p-3.5">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <FaCreditCard className="text-blue-500 text-xs" />
@@ -338,15 +361,22 @@ const Profile = () => {
                     </div>
 
                     <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Quick Links</h3>
-                        <div className="space-y-2">
-                            <button onClick={() => navigate('/products')} className="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left">
-                                <div className="w-9 h-9 bg-pink-100 text-pink-600 rounded-lg flex items-center justify-center text-sm"><FaShoppingBag /></div>
-                                <span className="text-sm font-medium text-gray-700">Browse Products</span>
-                            </button>
-                            <button onClick={() => setActiveTab('orders')} className="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left">
-                                <div className="w-9 h-9 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center text-sm"><FaBox /></div>
-                                <span className="text-sm font-medium text-gray-700">Order History</span>
+                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Privacy & Security</h3>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => navigate('/account/delete')}
+                                className="w-full flex items-center justify-between p-3.5 bg-red-50/50 hover:bg-red-50 rounded-xl transition-colors border border-red-100/50 text-left group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-sm">
+                                        <FaTrash />
+                                    </div>
+                                    <div>
+                                        <span className="text-sm font-bold text-red-900 block">Delete My Account</span>
+                                        <span className="text-xs text-red-600/70">Permanently anonymize identity and close account</span>
+                                    </div>
+                                </div>
+                                <span className="text-xs font-bold text-red-600 group-hover:translate-x-1 transition-transform">Request →</span>
                             </button>
                         </div>
                     </div>

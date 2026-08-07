@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
@@ -21,11 +21,18 @@ const Checkout = () => {
     const [appliedCoupon, setAppliedCoupon] = useState(null);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (!currentUser) {
+            toast.info("Please login to proceed to checkout");
+            navigate('/login');
+        }
+    }, [currentUser]);
+
     const fetchAddresses = async () => {
         if (!currentUser) return;
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/addresses', {
+            const res = await api.get('/addresses', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(res.data);
@@ -60,7 +67,7 @@ const Checkout = () => {
             const token = await currentUser.getIdToken();
             
             if (paymentMethod === 'COD') {
-                const res = await axios.post('http://localhost:5000/api/orders/cod', {
+                const res = await api.post('/orders/cod', {
                     address: selectedAddress,
                     couponCode: appliedCoupon?.code || null,
                     items: cartItems
@@ -72,7 +79,7 @@ const Checkout = () => {
                 navigate('/profile');
             } else {
                 // Razorpay Flow
-                const orderRes = await axios.post('http://localhost:5000/api/orders/create-order', {
+                const orderRes = await api.post('/orders/create-order', {
                     couponCode: appliedCoupon?.code || null,
                     address: selectedAddress,
                     items: cartItems
@@ -89,7 +96,7 @@ const Checkout = () => {
                     order_id: orderRes.data.id,
                     handler: async function (response) {
                         try {
-                            await axios.post('http://localhost:5000/api/orders/verify-payment', {
+                            await api.post('/orders/verify-payment', {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
@@ -122,6 +129,8 @@ const Checkout = () => {
             setLoading(false);
         }
     };
+
+
 
     const handlingCharge = 0;
     const deliveryFee = 0;

@@ -6,6 +6,8 @@ import { useCart } from '../context/CartContext';
 import { FaSearch, FaShoppingCart, FaUser, FaSignOutAlt, FaMapMarkerAlt } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 
+import api from '../services/api';
+
 const Navbar = ({ onCartClick }) => {
     const { currentUser, logout } = useAuth();
     const { itemCount } = useCart();
@@ -39,7 +41,7 @@ const Navbar = ({ onCartClick }) => {
         debounceRef.current = setTimeout(async () => {
             setLoadingSuggestions(true);
             try {
-                const res = await axios.get(`http://localhost:5000/api/products?search=${encodeURIComponent(query.trim())}`);
+                const res = await api.get(`/products?search=${encodeURIComponent(query.trim())}`);
                 setSuggestions(res.data.slice(0, 6)); // max 6 suggestions
                 setShowSuggestions(true);
             } catch (err) {
@@ -50,6 +52,7 @@ const Navbar = ({ onCartClick }) => {
             }
         }, 300); // 300ms debounce
     }, []);
+
 
     const handleSearchChange = (e) => {
         const val = e.target.value;
@@ -158,7 +161,7 @@ const Navbar = ({ onCartClick }) => {
                     {/* Left: Logo & Location */}
                     <div className="flex items-center gap-6">
                         <Link to="/" className="flex items-center gap-2 shrink-0">
-                            <img src="/logo.jpg" alt="BlueAgle" className="h-9 w-9 rounded-lg object-contain" />
+                            <img src="/logo.png" alt="BlueAgle" className="h-9 w-9 rounded-lg object-contain" />
                             <span className="text-2xl font-extrabold text-[#3c006b] tracking-tight hidden sm:block">Blue<span className="text-[#ff3269]">Agle</span></span>
                         </Link>
 

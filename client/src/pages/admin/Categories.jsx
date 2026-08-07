@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+﻿import React, { useState, useEffect } from 'react';
+import adminApi from '../../services/adminApi';
 import { toast } from 'react-toastify';
-import { FaTrash, FaEdit, FaListUl, FaImage, FaPlus, FaSave, FaTimes, FaTag, FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { 
+    FaFolderPlus, FaEdit, FaTrash, FaChevronDown, FaChevronUp, 
+    FaPlus, FaFolder, FaTags, FaImage, FaCheck, FaTimes, FaListUl, FaTag, FaChevronRight, FaSave 
+} from 'react-icons/fa';
 import { getImageUrl } from '../../utils/imageHelper';
 
 const Categories = () => {
-    const { currentUser } = useAuth();
     const [categories, setCategories] = useState([]);
-
-    // Category form state
     const [name, setName] = useState('');
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [editingId, setEditingId] = useState(null);
 
-    // SubCategory form state
+    // SubCategory state
     const [subName, setSubName] = useState('');
     const [subCategoryId, setSubCategoryId] = useState('');
     const [editingSubId, setEditingSubId] = useState(null);
@@ -23,7 +22,7 @@ const Categories = () => {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/categories');
+            const res = await adminApi.get('/categories');
             setCategories(res.data);
         } catch (error) {
             console.error(error);
@@ -51,14 +50,11 @@ const Categories = () => {
         if (image) formData.append('image', image);
 
         try {
-            const token = await currentUser.getIdToken();
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-
-            if (editingId) {
-                await axios.put(`http://localhost:5000/api/categories/${editingId}`, formData, config);
+                        if (editingId) {
+                await adminApi.put(`/categories/${editingId}`, formData);
                 toast.success('Category Updated Successfully');
             } else {
-                await axios.post('http://localhost:5000/api/categories', formData, config);
+                await adminApi.post('/categories', formData);
                 toast.success('Category Created Successfully');
             }
 
@@ -70,10 +66,9 @@ const Categories = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this category?')) return;
+        if (!window.confirm('Are you sure? This will delete all sub-categories and products under this category.')) return;
         try {
-            const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/categories/${id}`, {
+                        await adminApi.delete(`/categories/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             toast.success('Category Deleted');
@@ -84,11 +79,9 @@ const Categories = () => {
     };
 
     const handleEdit = (cat) => {
-        setName(cat.name);
         setEditingId(cat.id);
-        setImage(null);
+        setName(cat.name);
         setImagePreview(cat.image ? getImageUrl(cat.image) : null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const cancelEdit = () => {
@@ -98,32 +91,32 @@ const Categories = () => {
         setImagePreview(null);
     };
 
-    // ─── SubCategory Handlers ─────────────────────────────────────────────────
+    // ─── SubCategory Handlers ──────────────────────────────────────────────────
 
     const handleSubSubmit = async (e) => {
         e.preventDefault();
-        if (!subCategoryId) {
-            toast.error('Please select a parent category');
+        if (!subName.trim() || !subCategoryId) {
+            toast.error('Please enter sub-category name and select a parent category');
             return;
         }
+
         try {
-            const token = await currentUser.getIdToken();
-            const config = {
+                        const config = {
                 headers: { Authorization: `Bearer ${token}` },
             };
 
             if (editingSubId) {
                 // Update subcategory
-                await axios.put(
-                    `http://localhost:5000/api/categories/sub/${editingSubId}`,
+                await adminApi.put(
+                    `/categories/sub/${editingSubId}`,
                     { name: subName, categoryId: subCategoryId },
                     config
                 );
                 toast.success('Sub-category Updated');
             } else {
                 // Create subcategory
-                await axios.post(
-                    'http://localhost:5000/api/categories/sub',
+                await adminApi.post(
+                    '/categories/sub',
                     { name: subName, categoryId: subCategoryId },
                     config
                 );
@@ -140,8 +133,7 @@ const Categories = () => {
     const handleSubDelete = async (subId) => {
         if (!window.confirm('Delete this sub-category?')) return;
         try {
-            const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/categories/sub/${subId}`, {
+                        await adminApi.delete(`/categories/sub/${subId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             toast.success('Sub-category Deleted');

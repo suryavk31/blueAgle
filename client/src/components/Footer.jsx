@@ -9,7 +9,7 @@ const Footer = () => {
                     {/* Brand Section */}
                     <div className="space-y-4">
                         <Link to="/" className="flex items-center gap-2">
-                            <img src="/logo.jpg" alt="BlueAgle" className="h-10 w-10 rounded-lg object-contain bg-white p-1" />
+                            <img src="/logo.png" alt="BlueAgle" className="h-10 w-10 rounded-lg object-contain bg-white p-1" />
                             <span className="text-3xl font-extrabold text-white tracking-tight">Blue<span className="text-[#ff3269]">Agle</span></span>
                         </Link>
                         <p className="text-sm text-gray-400 leading-relaxed">
@@ -47,8 +47,10 @@ const Footer = () => {
                         <ul className="space-y-3 text-sm">
                             <li><Link to="/policy/privacy" className="hover:text-[#ff3269] transition">Privacy Policy</Link></li>
                             <li><Link to="/policy/terms" className="hover:text-[#ff3269] transition">Terms & Conditions</Link></li>
+                            <li><Link to="/policy/account-deletion" className="hover:text-[#ff3269] transition">Account Deletion Policy</Link></li>
                             <li><Link to="/policy/return" className="hover:text-[#ff3269] transition">Return Policy</Link></li>
-                            <li><Link to="/policy/shipping" className="hover:text-[#ff3269] transition">Shipping</Link></li>
+                            <li><Link to="/policy/cancellation" className="hover:text-[#ff3269] transition">Cancellation Policy</Link></li>
+                            <li><Link to="/policy/shipping" className="hover:text-[#ff3269] transition">Shipping Policy</Link></li>
                         </ul>
                     </div>
 

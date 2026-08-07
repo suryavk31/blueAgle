@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useLocation, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { FaFilter, FaSortAmountDown, FaTimes } from 'react-icons/fa';
+
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
 
@@ -22,8 +22,12 @@ const ProductList = () => {
 
     useEffect(() => {
         const fetchCategories = async () => {
-            const res = await axios.get('http://localhost:5000/api/categories');
-            setCategories(res.data);
+            try {
+                const res = await api.get('/categories');
+                setCategories(res.data);
+            } catch (err) {
+                console.error(err);
+            }
         };
         fetchCategories();
     }, []);
@@ -32,14 +36,15 @@ const ProductList = () => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                let url = 'http://localhost:5000/api/products?';
-                if (categoryId) url += `categoryId=${categoryId}&`;
-                if (search) url += `search=${search}&`;
-                if (minPrice) url += `minPrice=${minPrice}&`;
-                if (maxPrice) url += `maxPrice=${maxPrice}&`;
-                if (sortBy) url += `sortBy=${sortBy}`;
+                let params = [];
+                if (categoryId) params.push(`categoryId=${categoryId}`);
+                if (search) params.push(`search=${encodeURIComponent(search)}`);
+                if (minPrice) params.push(`minPrice=${minPrice}`);
+                if (maxPrice) params.push(`maxPrice=${maxPrice}`);
+                if (sortBy) params.push(`sortBy=${sortBy}`);
 
-                const res = await axios.get(url);
+                const queryString = params.length > 0 ? `?${params.join('&')}` : '';
+                const res = await api.get(`/products${queryString}`);
                 setProducts(res.data);
             } catch (error) {
                 console.error(error);
@@ -58,10 +63,7 @@ const ProductList = () => {
                 <h2 className="text-lg md:text-2xl font-bold">
                     {categoryId ? 'Category Products' : search ? `Search: "${search}"` : 'All Products'}
                 </h2>
-                <Helmet>
-                    <title>{categoryId ? 'Category Store' : search ? `Search: ${search}` : 'All Products'} | Premium E-commerce</title>
-                    <meta name="description" content="Explore our wide range of premium wood-pressed and organic products." />
-                </Helmet>
+
                 <div className="flex gap-2">
                     <select 
                         className="text-xs border rounded-full px-3 py-1 bg-gray-50 outline-none"

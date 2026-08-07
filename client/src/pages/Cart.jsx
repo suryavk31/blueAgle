@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const Cart = () => {
     const fetchCart = async () => {
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/cart', {
+            const res = await api.get('/cart', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setCart(res.data);
@@ -32,7 +32,7 @@ const Cart = () => {
     const updateQuantity = async (itemId, qty) => {
         try {
             const token = await currentUser.getIdToken();
-            await axios.put(`http://localhost:5000/api/cart/${itemId}`, { quantity: qty }, {
+            await api.put(`/cart/${itemId}`, { quantity: qty }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchCart();
@@ -44,7 +44,7 @@ const Cart = () => {
     const removeItem = async (itemId) => {
         try {
             const token = await currentUser.getIdToken();
-            await axios.delete(`http://localhost:5000/api/cart/${itemId}`, {
+            await api.delete(`/cart/${itemId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchCart();
@@ -58,16 +58,13 @@ const Cart = () => {
         if (!couponCode) return;
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.post('http://localhost:5000/api/coupons/verify', { code: couponCode }, {
+            const res = await api.post('/coupons/verify', { code: couponCode }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Simplified discount logic for MVP
             const coupon = res.data;
             let disc = 0;
             if (coupon.discountType === 'fixed') {
                 disc = parseFloat(coupon.value);
-            } else {
-                // percentage logic
             }
             setDiscount(disc);
             toast.success("Coupon Applied");
@@ -83,35 +80,34 @@ const Cart = () => {
         script.onload = async () => {
             try {
                 const token = await currentUser.getIdToken();
-                // Create Order
-                const orderRes = await axios.post('http://localhost:5000/api/orders/create-order', {
+                const orderRes = await api.post('/orders/create-order', {
                     couponCode: discount > 0 ? couponCode : null,
-                    address: { line1: "123 Street", city: "City" } // Hardcoded for MVP, should be a form
+                    address: { line1: "123 Street", city: "City" }
                 }, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
                 const options = {
-                    key: "rzp_test_placeholder", // Reads from config ideally
+                    key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
                     amount: orderRes.data.amount,
                     currency: orderRes.data.currency,
-                    name: "ProjectOne",
+                    name: "BlueAgle",
                     description: "Order Payment",
                     order_id: orderRes.data.id,
                     handler: async function (response) {
                         try {
-                            await axios.post('http://localhost:5000/api/orders/verify-payment', {
+                            await api.post('/orders/verify-payment', {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
-                                address: { line1: "123 Street", city: "City" }, // Pass actual address
+                                address: { line1: "123 Street", city: "City" },
                                 couponCode: discount > 0 ? couponCode : null,
-                                amount: orderRes.data.totalAmount // Pass verified amount logic
+                                amount: orderRes.data.totalAmount
                             }, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             toast.success("Order Placed Successfully!");
-                            setCart(null); // Clear cart locally or fetch
+                            setCart(null);
                             navigate('/profile');
                         } catch (err) {
                             toast.error("Payment Verification Failed");

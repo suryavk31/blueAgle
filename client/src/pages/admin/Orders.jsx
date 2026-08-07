@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import adminApi from '../../services/adminApi';
 import { toast } from 'react-toastify';
 import { FaShoppingCart, FaSearch, FaFilter, FaBoxOpen, FaTimes, FaMapMarkerAlt, FaUser, FaPhoneAlt, FaCalendarAlt, FaCreditCard } from 'react-icons/fa';
+import { getImageUrl } from '../../utils/imageHelper';
+
 
 const Orders = () => {
-    const { currentUser } = useAuth();
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
     const fetchOrders = async () => {
         try {
-            const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/orders/all', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        const res = await adminApi.get('/orders/all');
             setOrders(res.data);
         } catch (error) {
             console.error(error);
@@ -27,10 +24,7 @@ const Orders = () => {
 
     const updateStatus = async (id, status) => {
         try {
-            const token = await currentUser.getIdToken();
-            await axios.put(`http://localhost:5000/api/orders/${id}/status`, { status }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+                        await adminApi.put(`/orders/${id}/status`, { status });
             toast.success("Status Updated Successfully");
             fetchOrders();
         } catch (error) {
@@ -208,10 +202,11 @@ const Orders = () => {
                                                 <div key={idx} className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm transition-transform hover:scale-[1.01]">
                                                     <div className="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100">
                                                         <img
-                                                            src={item.Product?.mediaUrl || 'https://via.placeholder.com/150'}
+                                                            src={item.Product?.images?.[0] ? getImageUrl(item.Product.images[0]) : 'https://via.placeholder.com/150'}
                                                             alt={item.Product?.name}
                                                             className="w-full h-full object-cover"
                                                         />
+
                                                     </div>
                                                     <div className="flex-grow min-w-0">
                                                         <h5 className="font-bold text-gray-900 truncate text-sm">{item.Product?.name}</h5>
@@ -302,20 +297,37 @@ const Orders = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-8 pt-4 border-t border-gray-100 flex-shrink-0 flex justify-end gap-3">
+                        <div className="p-8 pt-4 border-t border-gray-100 flex-shrink-0 flex justify-between items-center gap-3">
                             <button
-                                onClick={() => setSelectedOrder(null)}
-                                className="px-6 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 font-bold transition-colors"
+                                onClick={async () => {
+                                    try {
+                                        const res = await adminApi.get(`/invoice/order/${selectedOrder.id}/render`);
+                                        const printWin = window.open('', '_blank');
+                                        printWin.document.write(`
+                                            <html>
+                                                <head>
+                                                    <title>Invoice #${selectedOrder.id}</title>
+                                                    <style>body { font-family: Inter, sans-serif; margin: 0; padding: 20px; }</style>
+                                                </head>
+                                                <body>
+                                                    <div id="render-root"></div>
+                                                    <script>window.print();</script>
+                                                </body>
+                                            </html>
+                                        `);
+                                    } catch {
+                                        toast.error('Failed to compile invoice');
+                                    }
+                                }}
+                                className="px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl font-bold text-sm flex items-center gap-2 border border-indigo-200 transition-colors"
                             >
-                                Done
+                                🖨️ Print / Download Invoice
                             </button>
                             <button
-                                onClick={() => {
-                                    window.print();
-                                }}
-                                className="px-6 py-3 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 font-bold transition-all shadow-[0_4px_15px_rgba(79,70,229,0.3)] active:scale-95"
+                                onClick={() => setSelectedOrder(null)}
+                                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold text-sm transition-colors"
                             >
-                                Print Invoice
+                                Close Details
                             </button>
                         </div>
                     </div>

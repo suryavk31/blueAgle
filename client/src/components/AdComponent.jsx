@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { getImageUrl } from '../utils/imageHelper';
 
 const AdComponent = ({ ad, className }) => {
@@ -28,7 +28,7 @@ const AdComponent = ({ ad, className }) => {
 
     const trackImpression = async () => {
         try {
-            await axios.post('http://localhost:5000/api/ads/track', {
+            await api.post('/ads/track', {
                 adId: ad.id,
                 type: 'impression'
             });
@@ -39,7 +39,7 @@ const AdComponent = ({ ad, className }) => {
 
     const handleClick = async () => {
         try {
-            await axios.post('http://localhost:5000/api/ads/track', {
+            await api.post('/ads/track', {
                 adId: ad.id,
                 type: 'click'
             });
@@ -55,6 +55,7 @@ const AdComponent = ({ ad, className }) => {
             if (ad.redirectUrl) window.location.href = ad.redirectUrl;
         }
     };
+
 
     if (!ad) return null;
 

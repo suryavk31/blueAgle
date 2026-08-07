@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
@@ -24,7 +24,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
         if (!currentUser) return;
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.get('http://localhost:5000/api/addresses', {
+            const res = await api.get('/addresses', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(res.data);
@@ -50,7 +50,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
         }
         try {
             const token = await currentUser.getIdToken();
-            const res = await axios.post('http://localhost:5000/api/coupons/verify', { code: couponCode }, {
+            const res = await api.post('/coupons/verify', { code: couponCode }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const coupon = res.data;
