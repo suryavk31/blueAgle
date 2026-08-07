@@ -1,7 +1,8 @@
+import adminApi from './adminApi';
 import api from './api';
 
 const seoService = {
-    // Resolve dynamic SEO for route or pageKey
+    // Resolve dynamic SEO for route or pageKey (Customer facing)
     resolveSeo: async (route, pageKey) => {
         const params = new URLSearchParams();
         if (route) params.append('route', route);
@@ -11,138 +12,103 @@ const seoService = {
     },
 
     // Admin List with search/filters
-    getAllSeo: async (params, token) => {
-        const res = await api.get('/seo/all', {
-            params,
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    getAllSeo: async (params) => {
+        const res = await adminApi.get('/seo/all', { params });
         return res.data;
     },
 
     // Admin Get By ID
-    getSeoById: async (id, token) => {
-        const res = await api.get(`/seo/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    getSeoById: async (id) => {
+        const res = await adminApi.get(`/seo/${id}`);
         return res.data;
     },
 
     // Admin Create
-    createSeo: async (data, token) => {
-        const res = await api.post('/seo', data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    createSeo: async (data) => {
+        const res = await adminApi.post('/seo', data);
         return res.data;
     },
 
     // Admin Update
-    updateSeo: async (id, data, token) => {
-        const res = await api.put(`/seo/${id}`, data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    updateSeo: async (id, data) => {
+        const res = await adminApi.put(`/seo/${id}`, data);
         return res.data;
     },
 
     // Admin Delete
-    deleteSeo: async (id, token) => {
-        const res = await api.delete(`/seo/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    deleteSeo: async (id) => {
+        const res = await adminApi.delete(`/seo/${id}`);
         return res.data;
     },
 
     // Admin Bulk Actions
-    bulkActions: async (action, ids, updateData, token) => {
-        const res = await api.post('/seo/bulk', { action, ids, updateData }, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    bulkActions: async (action, ids, updateData) => {
+        const res = await adminApi.post('/seo/bulk', { action, ids, updateData });
         return res.data;
     },
 
     // Export JSON
-    exportSeo: async (token) => {
-        const res = await api.get('/seo/export', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    exportSeo: async () => {
+        const res = await adminApi.get('/seo/export');
         return res.data;
     },
 
     // Import JSON
-    importSeo: async (records, token) => {
-        const res = await api.post('/seo/import', { records }, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    importSeo: async (records) => {
+        const res = await adminApi.post('/seo/import', { records });
         return res.data;
     },
 
     // Global Settings
     getGlobalSeo: async () => {
-        const res = await api.get('/seo/global');
+        const res = await adminApi.get('/seo/global');
         return res.data;
     },
 
-    updateGlobalSeo: async (data, token) => {
-        const res = await api.put('/seo/global', data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    updateGlobalSeo: async (data) => {
+        const res = await adminApi.put('/seo/global', data);
         return res.data;
     },
 
     // Real-time Validate
-    validateSeo: async (data, token) => {
-        const res = await api.post('/seo/validate', data, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    validateSeo: async (data) => {
+        const res = await adminApi.post('/seo/validate', data);
         return res.data;
     },
 
     // ── Auto-SEO Sync Engine Methods ──────────────────────────────────────────
-    getSyncStats: async (token) => {
-        const res = await api.get('/seo/sync/stats', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    getSyncStats: async () => {
+        const res = await adminApi.get('/seo/sync/stats');
         return res.data;
     },
 
-    getMissingPages: async (token) => {
-        const res = await api.get('/seo/sync/missing', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    getMissingPages: async () => {
+        const res = await adminApi.get('/seo/sync/missing');
         return res.data;
     },
 
-    previewSync: async (token) => {
-        const res = await api.get('/seo/sync/preview', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    previewSync: async () => {
+        const res = await adminApi.get('/seo/sync/preview');
         return res.data;
     },
 
-    generateMissingSeo: async (token) => {
-        const res = await api.post('/seo/sync/generate', {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    generateMissingSeo: async () => {
+        const res = await adminApi.post('/seo/sync/generate', {});
         return res.data;
     },
 
-    regenerateSeo: async (options, token) => {
-        const res = await api.post('/seo/sync/regenerate', options, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    regenerateSeo: async (options) => {
+        const res = await adminApi.post('/seo/sync/regenerate', options);
         return res.data;
     },
 
-    markAsManual: async (id, token) => {
-        const res = await api.post(`/seo/sync/mark-manual/${id}`, {}, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    markAsManual: async (id) => {
+        const res = await adminApi.post(`/seo/sync/mark-manual/${id}`, {});
         return res.data;
     },
 
-    unmarkManual: async (id, token) => {
-        const res = await api.delete(`/seo/sync/mark-manual/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    unmarkManual: async (id) => {
+        const res = await adminApi.delete(`/seo/sync/mark-manual/${id}`);
         return res.data;
     }
 };

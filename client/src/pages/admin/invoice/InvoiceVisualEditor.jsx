@@ -261,52 +261,50 @@ const InvoiceVisualEditor = () => {
                             <option value="Landscape">Landscape</option>
                         </select>
                     </div>
-
-                    {/* Zoom Stepper */}
-                    <div className="flex items-center gap-1">
-                        <button onClick={() => setZoom((z) => Math.max(40, z - 10))} className="p-1 hover:text-indigo-400" title="Zoom Out"><FaSearchMinus /></button>
-                        <span className="font-mono text-[11px] font-bold px-1">{zoom}%</span>
-                        <button onClick={() => setZoom((z) => Math.min(150, z + 10))} className="p-1 hover:text-indigo-400" title="Zoom In"><FaSearchPlus /></button>
-                        <button onClick={() => setZoom(85)} className="p-1 hover:text-indigo-400 ml-1 text-[10px] uppercase font-bold" title="Reset Zoom">Reset</button>
-                    </div>
                 </div>
 
-                {/* Right: View Tabs & Save */}
-                <div className="flex items-center gap-2">
-                    <div className="flex bg-slate-800 p-1 rounded-xl gap-1 text-xs">
+                {/* Mobile View Disclaimer */}
+                <div className="lg:hidden bg-indigo-950/60 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg border border-indigo-800/50 font-medium text-center">
+                    💡 Tip: Switch to landscape or tablet/desktop for optimal canvas editing
+                </div>
+
+                {/* Right Header Actions */}
+                <div className="flex items-center justify-between sm:justify-end gap-2 text-xs">
+                    {/* View Tabs */}
+                    <div className="flex bg-slate-800 p-1 rounded-xl font-semibold text-[11px]">
                         <button
                             onClick={() => setActiveTab('canvas')}
-                            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
-                                activeTab === 'canvas' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                            className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
+                                activeTab === 'canvas' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-white'
                             }`}
                         >
-                            <FaDesktop /> Visual Canvas
+                            <FaDesktop /> Canvas
                         </button>
                         <button
                             onClick={() => setActiveTab('preview')}
-                            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all ${
-                                activeTab === 'preview' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                            className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
+                                activeTab === 'preview' ? 'bg-indigo-600 text-white shadow-sm font-bold' : 'text-slate-400 hover:text-white'
                             }`}
                         >
-                            <FaEye /> Live Print Preview
+                            <FaEye /> Preview
                         </button>
                     </div>
 
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-50"
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50"
                     >
-                        <FaSave /> {isSaving ? 'Saving...' : 'Save Template'}
+                        <FaSave /> {isSaving ? 'Saving...' : 'Save'}
                     </button>
                 </div>
             </div>
 
             {/* Main Studio Body */}
             {activeTab === 'canvas' ? (
-                <div className="flex-1 flex overflow-hidden relative">
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                     {/* Left Sidebar: Element Library & Layers */}
-                    <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col overflow-hidden shrink-0 z-10">
+                    <div className="w-full lg:w-72 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col overflow-hidden shrink-0 z-10 max-h-[35vh] lg:max-h-none">
                         {/* Tab Headers */}
                         <div className="flex border-b border-slate-800 bg-slate-900/50 p-1">
                             <button

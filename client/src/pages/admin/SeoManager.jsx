@@ -112,11 +112,9 @@ const SeoManager = () => {
     const fetchRecords = async () => {
         setLoading(true);
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
-            if (!token) return;
             const res = await seoService.getAllSeo({
                 search, pageType: selectedPageType, isActive: selectedStatus, page
-            }, token);
+            });
             setRecords(res.seoRecords || []);
             setTotalPages(res.totalPages || 1);
         } catch (error) {
@@ -137,9 +135,7 @@ const SeoManager = () => {
 
     const fetchSyncStats = async () => {
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
-            if (!token) return;
-            const data = await seoService.getSyncStats(token);
+            const data = await seoService.getSyncStats();
             setSyncStats(data);
         } catch (error) {
             console.error('Error fetching sync stats', error);
@@ -159,8 +155,7 @@ const SeoManager = () => {
     const handleGenerateMissingSeo = async () => {
         setIsSyncing(true);
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
-            const res = await seoService.generateMissingSeo(token);
+            const res = await seoService.generateMissingSeo();
             setSyncReport(res.report);
             setIsReportModalOpen(true);
             toast.success(`Generated ${res.report.created} missing SEO records!`);
@@ -176,8 +171,7 @@ const SeoManager = () => {
     const handleRunRegenerate = async () => {
         setIsSyncing(true);
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
-            const res = await seoService.regenerateSeo(regenOptions, token);
+            const res = await seoService.regenerateSeo(regenOptions);
             setSyncReport(res.report);
             setIsRegenModalOpen(false);
             setIsReportModalOpen(true);
@@ -194,8 +188,7 @@ const SeoManager = () => {
     const handlePreviewSync = async () => {
         setIsSyncing(true);
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
-            const res = await seoService.previewSync(token);
+            const res = await seoService.previewSync();
             setSyncReport(res.report);
             setIsReportModalOpen(true);
             toast.info(`Dry run complete. Scanned ${res.report.scanned} pages.`);
@@ -208,12 +201,11 @@ const SeoManager = () => {
 
     const handleToggleManualEdit = async (record) => {
         try {
-            const token = currentUser ? await currentUser.getIdToken() : null;
             if (record.isManuallyEdited) {
-                await seoService.unmarkManual(record.id, token);
+                await seoService.unmarkManual(record.id);
                 toast.success('Record un-flagged. Auto-sync will update it.');
             } else {
-                await seoService.markAsManual(record.id, token);
+                await seoService.markAsManual(record.id);
                 toast.success('Record protected from auto-sync overwrites.');
             }
             fetchRecords();
@@ -255,8 +247,7 @@ const SeoManager = () => {
         });
 
         try {
-            const token = await currentUser.getIdToken();
-            const detail = await seoService.getSeoById(record.id, token);
+            const detail = await seoService.getSeoById(record.id);
             setAuditLogs(detail.auditLogs || []);
         } catch (e) {
             setAuditLogs([]);
@@ -286,8 +277,7 @@ const SeoManager = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this SEO record?')) return;
         try {
-            const token = await currentUser.getIdToken();
-            await seoService.deleteSeo(id, token);
+            await seoService.deleteSeo(id);
             toast.success('SEO Record Deleted');
             fetchRecords();
             fetchSyncStats();
@@ -315,12 +305,11 @@ const SeoManager = () => {
         };
 
         try {
-            const token = await currentUser.getIdToken();
             if (editingId) {
-                await seoService.updateSeo(editingId, payload, token);
+                await seoService.updateSeo(editingId, payload);
                 toast.success('SEO Record Updated Successfully');
             } else {
-                await seoService.createSeo(payload, token);
+                await seoService.createSeo(payload);
                 toast.success('SEO Record Created Successfully');
             }
             setIsModalOpen(false);
@@ -352,8 +341,7 @@ const SeoManager = () => {
         if (selectedIds.length === 0) return;
         if (!window.confirm(`Delete selected ${selectedIds.length} records?`)) return;
         try {
-            const token = await currentUser.getIdToken();
-            await seoService.bulkActions('DELETE', selectedIds, null, token);
+            await seoService.bulkActions('DELETE', selectedIds, null);
             toast.success('Selected SEO records deleted');
             setSelectedIds([]);
             fetchRecords();
@@ -366,8 +354,7 @@ const SeoManager = () => {
     // Export & Import
     const handleExport = async () => {
         try {
-            const token = await currentUser.getIdToken();
-            const data = await seoService.exportSeo(token);
+            const data = await seoService.exportSeo();
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -387,8 +374,7 @@ const SeoManager = () => {
         reader.onload = async (evt) => {
             try {
                 const parsed = JSON.parse(evt.target.result);
-                const token = await currentUser.getIdToken();
-                const res = await seoService.importSeo(parsed, token);
+                const res = await seoService.importSeo(parsed);
                 toast.success(res.message);
                 fetchRecords();
                 fetchSyncStats();
@@ -403,8 +389,7 @@ const SeoManager = () => {
         e.preventDefault();
         setSavingGlobal(true);
         try {
-            const token = await currentUser.getIdToken();
-            await seoService.updateGlobalSeo(globalSettings, token);
+            await seoService.updateGlobalSeo(globalSettings);
             toast.success('Global SEO Settings Saved');
         } catch (error) {
             toast.error('Error saving global settings');

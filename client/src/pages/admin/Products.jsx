@@ -271,9 +271,9 @@ const Products = () => {
     };
 
     return (
-        <div className="p-6 bg-slate-50 min-h-screen font-sans text-slate-800">
+        <div className="space-y-6 text-slate-800">
             {/* Header Title */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight">Product Master Management</h1>
                     <p className="text-xs text-slate-500 font-medium">Manage product details, pricing, media, specifications, highlights &amp; certifications</p>

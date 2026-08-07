@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import adminApi from '../../services/adminApi';
 import { toast } from 'react-toastify';
 import { 
@@ -68,9 +68,7 @@ const Categories = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure? This will delete all sub-categories and products under this category.')) return;
         try {
-                        await adminApi.delete(`/categories/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            await adminApi.delete(`/categories/${id}`);
             toast.success('Category Deleted');
             fetchCategories();
         } catch (error) {
@@ -307,39 +305,41 @@ const Categories = () => {
                         categories.map((cat) => (
                             <div key={cat.id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 {/* Category Row */}
-                                <div className="flex items-center gap-4 p-4 bg-white group">
-                                    {/* Thumbnail */}
-                                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
-                                        {cat.image ? (
-                                            <img src={getImageUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <FaImage className="text-gray-300 text-xl" />
-                                            </div>
-                                        )}
-                                    </div>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 bg-white group">
+                                    <div className="flex items-center gap-3 w-full sm:w-auto flex-1 min-w-0">
+                                        {/* Thumbnail */}
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-gray-50 shrink-0 border border-gray-100">
+                                            {cat.image ? (
+                                                <img src={getImageUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <FaImage className="text-gray-300 text-lg sm:text-xl" />
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    {/* Info */}
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-gray-900 text-base">{cat.name}</h4>
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold mt-1">
-                                            <FaListUl size={9} /> {cat.SubCategories?.length || 0} Sub-categories
-                                        </span>
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-900 text-sm sm:text-base truncate">{cat.name}</h4>
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] sm:text-xs font-bold mt-0.5">
+                                                <FaListUl size={9} /> {cat.SubCategories?.length || 0} Sub-categories
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
                                         <button
                                             onClick={() => toggleExpand(cat.id)}
-                                            className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 px-3 py-2 rounded-lg transition-colors"
+                                            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs font-bold text-gray-500 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 px-3 py-2 rounded-lg transition-colors"
                                         >
                                             {expandedCatId === cat.id ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
                                             {expandedCatId === cat.id ? 'Collapse' : 'Show Subs'}
                                         </button>
-                                        <button onClick={() => handleEdit(cat)} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors">
+                                        <button onClick={() => handleEdit(cat)} className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors">
                                             <FaEdit size={12} /> Edit
                                         </button>
-                                        <button onClick={() => handleDelete(cat.id)} className="w-8 h-8 rounded-full flex items-center justify-center bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors">
+                                        <button onClick={() => handleDelete(cat.id)} className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors shrink-0">
                                             <FaTrash size={12} />
                                         </button>
                                     </div>

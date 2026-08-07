@@ -103,17 +103,18 @@ const Roles = () => {
 
     return (
         <div>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            {/* Top Bar Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-gray-100 mb-6">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Roles</h1>
-                    <p className="text-gray-500 text-sm mt-1">Manage roles and their permissions</p>
+                    <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                        <FaShieldAlt className="text-indigo-600" /> Role Permissions
+                    </h2>
+                    <p className="text-xs text-gray-500 font-medium mt-1">Manage system roles, module permissions, and access controls.</p>
                 </div>
                 <Can module="Roles" action="Create">
                     <button
-                        id="create-role-btn"
                         onClick={openCreate}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25 transition-all"
+                        className="flex items-center justify-center gap-2 bg-indigo-600 text-white font-extrabold px-5 py-2.5 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all text-xs self-stretch sm:self-auto"
                     >
                         <FaPlus /> Create Role
                     </button>
@@ -121,14 +122,14 @@ const Roles = () => {
             </div>
 
             {/* Search */}
-            <div className="relative mb-6 max-w-md">
-                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+            <div className="relative w-full max-w-md mb-6">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
                 <input
                     type="text"
                     placeholder="Search roles..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-sm"
+                    className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-xs"
                 />
             </div>
 

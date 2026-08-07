@@ -164,28 +164,30 @@ const Policies = () => {
             </div>
 
             {/* Main Workspace */}
-            <div className="flex-1 flex flex-col lg:flex-row gap-8 items-start">
-                {/* Navigation Sidebar */}
-                <div className="w-full lg:w-72 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 p-6 shrink-0 flex flex-col gap-2 relative overflow-hidden">
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">Document Type</h3>
-                    {POLICY_TYPES.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = type === item.type;
-                        return (
-                            <button
-                                key={item.type}
-                                onClick={() => setType(item.type)}
-                                className={`flex items-center gap-3 p-3.5 rounded-2xl font-bold text-xs transition-all text-left w-full ${
-                                    isActive
-                                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20 translate-x-1'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                                }`}
-                            >
-                                <Icon className={isActive ? 'text-white' : 'text-gray-400'} />
-                                <span className="truncate">{item.label}</span>
-                            </button>
-                        );
-                    })}
+            <div className="flex-1 flex flex-col lg:flex-row gap-6 sm:gap-8 items-start w-full">
+                {/* Navigation Sidebar / Horizontal Pills on Mobile */}
+                <div className="w-full lg:w-72 bg-white rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 p-4 sm:p-6 shrink-0 flex flex-col gap-2 relative overflow-hidden">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 sm:mb-4 px-1">Document Type</h3>
+                    <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto scrollbar-none pb-1 lg:pb-0">
+                        {POLICY_TYPES.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = type === item.type;
+                            return (
+                                <button
+                                    key={item.type}
+                                    onClick={() => setType(item.type)}
+                                    className={`flex items-center gap-2.5 p-3 rounded-xl sm:rounded-2xl font-bold text-xs transition-all text-left whitespace-nowrap lg:whitespace-normal shrink-0 lg:shrink lg:w-full ${
+                                        isActive
+                                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20'
+                                            : 'bg-gray-50 lg:bg-transparent text-gray-600 hover:bg-gray-100 hover:text-indigo-600'
+                                    }`}
+                                >
+                                    <Icon className={isActive ? 'text-white' : 'text-gray-400'} />
+                                    <span className="truncate">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Editor Workspace */}
