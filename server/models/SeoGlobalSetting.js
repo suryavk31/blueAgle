@@ -78,7 +78,56 @@ const SeoGlobalSetting = sequelize.define('SeoGlobalSetting', {
     robotsTxtCustomRules: {
         type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /checkout\nDisallow: /cart\nDisallow: /profile\n\nSitemap: http://localhost:5000/sitemap.xml`,
+        defaultValue: `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /checkout\nDisallow: /cart\nDisallow: /profile`,
+    },
+    // Local Business & Store Schema Fields
+    businessName: {
+        type: DataTypes.STRING,
+        defaultValue: 'BlueAgle Organic Oil Mill',
+    },
+    streetAddress: {
+        type: DataTypes.STRING,
+        defaultValue: '123 Mill Road, Main Market',
+    },
+    addressLocality: {
+        type: DataTypes.STRING,
+        defaultValue: 'Erode',
+    },
+    addressRegion: {
+        type: DataTypes.STRING,
+        defaultValue: 'Tamil Nadu',
+    },
+    postalCode: {
+        type: DataTypes.STRING,
+        defaultValue: '638001',
+    },
+    addressCountry: {
+        type: DataTypes.STRING,
+        defaultValue: 'IN',
+    },
+    telephone: {
+        type: DataTypes.STRING,
+        defaultValue: '+91 98765 43210',
+    },
+    priceRange: {
+        type: DataTypes.STRING,
+        defaultValue: '₹₹',
+    },
+    openingHours: {
+        type: DataTypes.STRING,
+        defaultValue: 'Mo-Sa 09:00-19:00',
+    },
+    latitude: {
+        type: DataTypes.STRING,
+        defaultValue: '11.3410',
+    },
+    longitude: {
+        type: DataTypes.STRING,
+        defaultValue: '77.7172',
+    },
+    googleBusinessProfileUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
 }, {
     timestamps: true,

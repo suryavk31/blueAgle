@@ -6,21 +6,28 @@ const ADMIN_API_BASE = import.meta.env.VITE_API_URL
 
 const adminApi = axios.create({
     baseURL: ADMIN_API_BASE,
-    headers: { 'Content-Type': 'application/json' },
 });
 
 // ─── Request Interceptor ──────────────────────────────────────────────────────
-// Automatically attach the admin JWT token to every request
+// Automatically attach the admin JWT token & handle FormData headers correctly
 adminApi.interceptors.request.use((config) => {
     const token = localStorage.getItem('admin_access_token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+        console.log(`🌐 [adminApi Request] MULTIPART FORM-DATA → ${config.method?.toUpperCase()} ${config.url}`);
+    } else {
+        console.log(`🌐 [adminApi Request] JSON → ${config.method?.toUpperCase()} ${config.url}`);
+    }
+
     return config;
 });
 
 // ─── Response Interceptor ─────────────────────────────────────────────────────
-// Handle 401 (expired token) with automatic refresh attempt
+// Handle 401 (expired token) with automatic refresh attempt & detailed logging
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -33,8 +40,12 @@ const processQueue = (error, token = null) => {
 };
 
 adminApi.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        console.log(`✅ [adminApi Response] ${response.config.method?.toUpperCase()} ${response.config.url} → ${response.status}`);
+        return response;
+    },
     async (error) => {
+        console.error(`❌ [adminApi Error] ${error.config?.method?.toUpperCase()} ${error.config?.url} → ${error.response?.status || 'Network Error'}:`, error.response?.data || error.message);
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {

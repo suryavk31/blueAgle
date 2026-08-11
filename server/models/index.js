@@ -18,6 +18,9 @@ const Address = require('./Address');
 const SeoSetting = require('./SeoSetting');
 const SeoGlobalSetting = require('./SeoGlobalSetting');
 const SeoAuditLog = require('./SeoAuditLog');
+const DeliverySetting = require('./DeliverySetting');
+const Blog = require('./Blog');
+const GaSetting = require('./GaSetting');
 
 // ─── Extended Product Metadata Models ────────────────────────────────────────
 const ProductHighlight = require('./ProductHighlight');
@@ -29,6 +32,7 @@ const ProductAttribute = require('./ProductAttribute');
 const ProductAttributeValue = require('./ProductAttributeValue');
 
 // ─── Invoice Builder Models ──────────────────────────────────────────────────
+const Invoice = require('./Invoice');
 const InvoiceTemplate = require('./InvoiceTemplate');
 const InvoiceTemplateCategory = require('./InvoiceTemplateCategory');
 const InvoiceVariable = require('./InvoiceVariable');
@@ -150,10 +154,14 @@ AdminInvitation.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
 AdminUser.hasMany(ActivityLog, { foreignKey: 'adminUserId', as: 'activityLogs' });
 ActivityLog.belongsTo(AdminUser, { foreignKey: 'adminUserId', as: 'adminUser' });
 
+// Invoice Associations
+Order.hasOne(Invoice, { foreignKey: 'orderId' });
+Invoice.belongsTo(Order, { foreignKey: 'orderId' });
+Invoice.belongsTo(InvoiceTemplate, { foreignKey: 'templateId' });
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 module.exports = {
     sequelize,
-    // Customer models
     User,
     Category,
     SubCategory,
@@ -171,6 +179,9 @@ module.exports = {
     SeoSetting,
     SeoGlobalSetting,
     SeoAuditLog,
+    DeliverySetting,
+    Blog,
+    GaSetting,
     // Extended Product Metadata models
     ProductHighlight,
     ProductSpecification,
@@ -180,6 +191,7 @@ module.exports = {
     ProductAttribute,
     ProductAttributeValue,
     // Invoice Builder models
+    Invoice,
     InvoiceTemplate,
     InvoiceTemplateCategory,
     InvoiceVariable,

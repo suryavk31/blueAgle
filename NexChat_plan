@@ -1,0 +1,1763 @@
+# NexChat — Telegram-Level Communication Platform
+## Complete Architecture & Implementation Plan (Phase 1)
+
+> **Status**: Awaiting Approval · **Version**: 1.0.0 · **Date**: 2026-06-22  
+> **Architect**: Principal Software Architect / Staff Engineer  
+> **Classification**: Production-Grade Enterprise Architecture
+
+---
+
+## Table of Contents
+
+1. [Product Vision](#1-product-vision)
+2. [System Architecture Overview](#2-system-architecture-overview)
+3. [Microservice Architecture](#3-microservice-architecture)
+4. [Security Architecture](#4-security-architecture)
+5. [Encryption Architecture](#5-encryption-architecture)
+6. [Database Strategy](#6-database-strategy)
+7. [API Strategy](#7-api-strategy)
+8. [Real-Time Strategy](#8-real-time-strategy)
+9. [Voice & Video Strategy](#9-voice--video-strategy)
+10. [Media System Strategy](#10-media-system-strategy)
+11. [UI/UX Strategy](#11-uiux-strategy)
+12. [Design System Strategy](#12-design-system-strategy)
+13. [DevOps Strategy](#13-devops-strategy)
+14. [Deployment Strategy](#14-deployment-strategy)
+15. [Folder Structure Strategy](#15-folder-structure-strategy)
+16. [Compliance Strategy](#16-compliance-strategy)
+17. [Admin & Analytics Platform](#17-admin--analytics-platform)
+18. [Public Marketing Website](#18-public-marketing-website)
+19. [Roadmap & Development Phases](#19-roadmap--development-phases)
+20. [Team Structure](#20-team-structure)
+21. [Risk Analysis](#21-risk-analysis)
+22. [Cost Estimation](#22-cost-estimation)
+
+---
+
+## 1. Product Vision
+
+### 1.1 Product Name
+**NexChat** — Next-generation, privacy-first, enterprise-grade communication platform.
+
+### 1.2 Mission Statement
+To provide a globally-scalable, end-to-end encrypted, real-time communication ecosystem that rivals Telegram in features, surpasses it in security architecture, and sets a new standard in user experience and developer extensibility.
+
+### 1.3 Core Pillars
+
+| Pillar | Description |
+|--------|-------------|
+| **Privacy First** | Zero-knowledge architecture, E2E encryption by default, no plaintext storage |
+| **Blazing Performance** | Sub-100ms message delivery, adaptive media streaming, global CDN |
+| **Enterprise Reliability** | 99.99% uptime SLA, multi-region HA, automated failover |
+| **Developer Extensibility** | Open Bot API, Webhook system, Plugin architecture |
+| **Regulatory Compliance** | GDPR, CCPA, SOC2 Type II ready architecture |
+
+### 1.4 Target Scale Targets
+- **Concurrent Users**: 5,000,000+
+- **Messages/Second**: 100,000+
+- **Media Uploads/Day**: 10,000,000+
+- **Voice/Video Sessions**: 500,000+
+- **Storage**: Petabyte-scale
+
+---
+
+## 2. System Architecture Overview
+
+### 2.1 High-Level Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                                │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
+│  │ Web App  │ │ Android  │ │   iOS    │ │ Desktop  │             │
+│  │(React+TS)│ │(React NTV│ │(React NTV│ │(Tauri+RS)│             │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘             │
+└───────┼─────────────┼─────────────┼─────────────┼─────────────────┘
+        │             │             │             │
+        └─────────────┴─────────────┴─────────────┘
+                              │
+                    ┌─────────▼──────────┐
+                    │    CDN (CloudFront) │
+                    │   + WAF + DDoS Prot │
+                    └─────────┬──────────┘
+                              │
+                    ┌─────────▼──────────┐
+                    │    API Gateway      │
+                    │  (Rate Limit, Auth, │
+                    │   Routing, LB)      │
+                    └─────────┬──────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+┌───────▼──────┐   ┌──────────▼──────┐   ┌─────────▼──────┐
+│  REST APIs   │   │  WebSocket Hub  │   │  gRPC Internal │
+│  (Services)  │   │  (Socket.IO)    │   │  (Svc-to-Svc)  │
+└───────┬──────┘   └──────────┬──────┘   └─────────┬──────┘
+        │                     │                     │
+        └─────────────────────┼─────────────────────┘
+                              │
+              ┌───────────────┼──────────────────┐
+              │               │                  │
+    ┌─────────▼─────┐ ┌───────▼──────┐ ┌────────▼──────┐
+    │  Microservices│ │  RabbitMQ    │ │    Redis      │
+    │  (24 services)│ │  (Async Msg) │ │  (Cache/Pub)  │
+    └─────────┬─────┘ └──────────────┘ └───────────────┘
+              │
+    ┌─────────▼──────────┐
+    │   MySQL Cluster     │
+    │  (Primary + Replica)│
+    └────────────────────┘
+```
+
+### 2.2 Client Applications
+
+| Platform | Technology | Purpose |
+|----------|-----------|---------|
+| **Web App** | React 18, Vite, Tailwind, TypeScript, Zustand, React Query | Primary browser experience |
+| **Android** | React Native 0.74+, TypeScript | Native Android app |
+| **iOS** | React Native 0.74+, TypeScript | Native iOS app |
+| **Desktop** | Tauri 2.0, React 18, TypeScript | Windows / macOS / Linux |
+| **Admin Panel** | React 18, Vite, Tailwind, TypeScript | Internal operations |
+| **Marketing Website** | React 18, Vite, Tailwind, TypeScript | Public landing page |
+
+### 2.3 Multi-Region Architecture
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  US-EAST-1   │    │  EU-WEST-1   │    │  AP-SOUTH-1  │
+│  (Primary)   │◄──►│  (Replica)   │◄──►│  (Replica)   │
+│              │    │              │    │              │
+│ k8s cluster  │    │ k8s cluster  │    │ k8s cluster  │
+│ MySQL Primary│    │ MySQL Replica│    │ MySQL Replica│
+│ Redis Primary│    │ Redis Replica│    │ Redis Replica│
+└──────────────┘    └──────────────┘    └──────────────┘
+        │                   │                   │
+        └───────────────────┼───────────────────┘
+                   Global Load Balancer
+                   (Geo-routing via DNS)
+```
+
+---
+
+## 3. Microservice Architecture
+
+### 3.1 Service Inventory & Responsibilities
+
+#### **1. API Gateway Service**
+- Single entry point for all client requests
+- JWT validation and Firebase token verification
+- Rate limiting (per user, per IP, per endpoint)
+- Request routing to downstream services
+- SSL termination
+- Request/response logging
+- DDoS mitigation layer
+- API versioning (v1, v2)
+- Circuit breaker pattern
+
+#### **2. Authentication Service**
+- Firebase Phone OTP integration
+- JWT access token issuance (15-minute TTL)
+- Refresh token management (30-day TTL, rotated)
+- Session creation and validation
+- Multi-device login orchestration
+- Login history recording
+- Suspicious activity detection
+- Account lockout policies
+- Token revocation (blacklist in Redis)
+
+#### **3. User Service**
+- User account lifecycle (create, update, delete, suspend)
+- Username management and availability
+- Account settings
+- Privacy settings (who can see profile, last seen, etc.)
+- Account deletion with data retention policy
+- GDPR data export
+- Blocked user list management
+
+#### **4. Profile Service**
+- Profile photo management
+- Bio and display name
+- Custom status
+- Links to social media
+- Profile visibility rules
+- Avatar generation (fallback)
+
+#### **5. Contact Service**
+- Contact list management
+- Contact sync from phone
+- Mutual contact detection
+- Contact invitation system
+- Blocking/unblocking
+- Contact search
+
+#### **6. Chat Service**
+- Chat session creation (1-to-1, group, channel)
+- Chat metadata management
+- Chat archival and unarchival
+- Pinned chats
+- Chat deletion
+- Muting notifications per chat
+- Chat folder management
+
+#### **7. Message Service**
+- Message sending, editing, deleting
+- Message delivery status pipeline (sent → delivered → read)
+- Typing indicator management
+- Reactions management
+- Replies and threaded messages
+- Message forwarding
+- Scheduled messages
+- Pinned messages
+- Saved messages
+- Message search indexing
+- Broadcast messages
+- Message pagination
+
+#### **8. Group Service**
+- Group creation and management
+- Group member management (admin roles: owner, admin, member)
+- Group settings (invite links, permissions)
+- Group invite system
+- Slow mode
+- Group message history settings
+- Group leave/kick/ban
+
+#### **9. Channel Service**
+- Channel creation and management
+- Subscriber management
+- Channel posts (broadcast only)
+- Channel admin roles
+- Comment system for posts
+- Analytics per channel post
+- Channel promotion
+
+#### **10. Media Service**
+- Chunked file upload orchestration
+- Resume upload support
+- Media encryption before storage
+- Image compression and thumbnail generation
+- Video transcoding pipeline
+- Audio processing
+- CDN URL generation with signed tokens
+- Malware scanning integration
+- File size and type validation
+- Media expiry policies
+
+#### **11. Notification Service**
+- Push notifications (FCM for Android, APNs for iOS)
+- Web push notifications
+- In-app notification store
+- Notification preferences per user
+- Muted chats handling
+- Do Not Disturb scheduling
+- Notification batching
+
+#### **12. Voice Call Service**
+- Call session initiation (WebRTC signaling)
+- STUN/TURN server coordination
+- Call state machine (ringing → connected → ended)
+- Call duration tracking
+- Call history
+- Noise suppression configuration
+- Echo cancellation configuration
+- Call quality metrics collection
+
+#### **13. Video Call Service**
+- Video session management
+- Group video call orchestration (SFU via mediasoup)
+- Screen sharing session management
+- Recording session initiation
+- Adaptive bitrate control
+- Background processing pipeline
+- Camera device management
+
+#### **14. Presence Service**
+- Online/offline status
+- Last seen timestamp management
+- Typing indicator broadcast
+- Status broadcast via Redis Pub/Sub
+- Presence privacy settings
+- Mobile vs web vs desktop presence differentiation
+
+#### **15. Search Service**
+- Full-text message search (Elasticsearch or MySQL FTS)
+- User search
+- Group/channel search
+- Global search orchestration
+- Search result ranking
+- Search history per user
+
+#### **16. Encryption Service**
+- Key pair generation (X25519 / Ed25519)
+- Identity key management
+- Pre-key bundle generation and distribution
+- Session key negotiation (Signal Protocol)
+- Key rotation scheduling
+- Key revocation
+- Group encryption key management (Sender Keys)
+- Encrypted key storage
+
+#### **17. Device Service**
+- Device registration
+- Device fingerprinting
+- Trusted device management
+- Active device listing
+- Device revocation
+- Device-specific push token management
+- Login history per device
+
+#### **18. Session Service**
+- WebSocket session lifecycle
+- Session store in Redis
+- Session invalidation
+- Cross-device session coordination
+- Session heartbeat
+
+#### **19. Analytics Service**
+- Event collection pipeline
+- DAU/MAU calculation
+- Retention cohort analysis
+- Message volume metrics
+- Call volume metrics
+- Storage usage metrics
+- Country/device breakdown
+- Dashboard data aggregation
+- Export pipeline (CSV, JSON)
+
+#### **20. Audit Service**
+- Immutable audit log for all admin actions
+- User action logging (configurable sensitivity)
+- Compliance event recording
+- Log retention policies
+- Log search and export
+
+#### **21. Admin Service**
+- Admin authentication and RBAC
+- User moderation actions (suspend, delete, warn)
+- Content moderation dashboard
+- System configuration management
+- Feature flags
+- Maintenance mode
+- Announcement system
+
+#### **22. Moderation Service**
+- Abuse report processing
+- Content hash matching (CSAM prevention)
+- Spam pattern detection
+- Bot detection heuristics
+- Automated action pipeline
+- Human review queue
+- Appeals system
+
+#### **23. Billing Service**
+- Subscription management
+- Payment gateway integration hooks
+- Usage metering
+- Invoice generation
+- Billing history
+- Proration logic
+
+#### **24. Storage Service**
+- S3-compatible storage abstraction (MinIO dev / AWS S3 prod)
+- Bucket management
+- Object lifecycle policies
+- Storage quota per user
+- Presigned URL generation
+- Multipart upload coordination
+- Storage analytics
+
+---
+
+### 3.2 Service Communication Matrix
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │         Communication Patterns               │
+                    ├─────────────────┬───────────────────────────┤
+                    │  Sync (REST/gRPC)│   Async (RabbitMQ)        │
+                    ├─────────────────┼───────────────────────────┤
+                    │ Auth → User     │ Message → Notification     │
+                    │ Gateway → All   │ Media → Notification       │
+                    │ Chat → Message  │ User → Analytics           │
+                    │ Call → Presence │ Moderation → Audit         │
+                    │ Encryption → All│ Session → Presence         │
+                    └─────────────────┴───────────────────────────┘
+```
+
+### 3.3 Service Dependency Diagram
+
+```
+API Gateway
+    ├── Auth Service ──────────────► User Service
+    │       └── Device Service ───► Session Service
+    │
+    ├── Chat Service ─────────────► Message Service
+    │       ├── Group Service          └── Encryption Service
+    │       ├── Channel Service        └── Media Service
+    │       └── Presence Service
+    │
+    ├── Call Service (Voice) ──────► Presence Service
+    │       └── Encryption Service
+    │
+    ├── Call Service (Video) ──────► Presence Service
+    │       └── Media Service (recording)
+    │
+    ├── Notification Service ──────► Device Service
+    │       └── Session Service
+    │
+    ├── Search Service ────────────► Message Service
+    │       └── User Service
+    │
+    ├── Admin Service ─────────────► Audit Service
+    │       └── Moderation Service
+    │
+    └── Analytics Service ─────────► All Services (event bus)
+```
+
+---
+
+## 4. Security Architecture
+
+### 4.1 Zero Trust Architecture
+
+> Every request is treated as untrusted regardless of network origin.
+
+```
+Request Flow:
+Client → WAF → CDN → API Gateway (mTLS) → Service Mesh (Istio) → Service
+                          │
+                    ┌─────▼──────┐
+                    │ Verify:    │
+                    │ JWT Token  │
+                    │ Device ID  │
+                    │ IP Reputation│
+                    │ Rate Limit │
+                    └────────────┘
+```
+
+### 4.2 Authentication Security Layers
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Phone OTP | Firebase Auth | Primary identity verification |
+| JWT Access Token | RS256 signed (2048-bit RSA) | Short-lived API access (15 min) |
+| Refresh Token | Opaque, rotated | Long-lived session (30 days) |
+| Device Binding | Device fingerprint hash | Prevent token theft |
+| mTLS | Service mesh | Internal service communication |
+
+### 4.3 Security Controls
+
+| Control | Implementation |
+|---------|---------------|
+| Rate Limiting | Redis sliding window per IP, per user, per endpoint |
+| DDoS Protection | WAF + Cloudflare / AWS Shield |
+| Bot Detection | Behavioral analysis + CAPTCHA fallback |
+| Anti-Spam | Pattern matching + ML classification |
+| CSRF Protection | SameSite=Strict cookies + custom header validation |
+| XSS Protection | Content-Security-Policy headers + DOMPurify |
+| SQL Injection | Parameterized queries only (Sequelize ORM) |
+| File Upload Security | Magic byte validation + MIME type check + virus scan |
+| Malware Scanning | ClamAV integration in media pipeline |
+| Secrets Management | HashiCorp Vault / AWS Secrets Manager |
+
+### 4.4 Multi-Device Session Security
+
+```
+Device Registration Flow:
+1. User authenticates via Firebase OTP
+2. Device generates local key pair (X25519)
+3. Public key sent to Device Service + Encryption Service
+4. Server issues device-bound JWT
+5. Device stored in trusted device list
+6. Session created in Redis (TTL: 30 days)
+
+Device Revocation Flow:
+1. User requests revocation from any trusted device
+2. Session Service invalidates Redis session
+3. Device Service marks device as revoked
+4. Encryption Service revokes device keys
+5. Push notification to revoked device
+```
+
+---
+
+## 5. Encryption Architecture
+
+### 5.1 Protocol Choice
+**Signal Protocol** (Extended Diffie-Hellman + Double Ratchet Algorithm)
+- Industry standard used by WhatsApp, Signal, Wire
+- Provides Perfect Forward Secrecy (PFS)
+- Post-Compromise Security
+
+### 5.2 Key Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        KEY HIERARCHY                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Identity Key Pair (IK)          ← Long-term, per device        │
+│       │                                                          │
+│  Signed Pre-Key (SPK)            ← Medium-term (weekly rotate)  │
+│       │                                                          │
+│  One-Time Pre-Keys (OPK)         ← Single use, 100 pre-loaded   │
+│       │                                                          │
+│  Session Keys (Double Ratchet)   ← Per message, forward secure  │
+│                                                                  │
+│  Group Sender Key                ← Per group, per device        │
+│  Media Encryption Key            ← Per file, AES-256-GCM        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 5.3 1-to-1 Message Encryption Flow
+
+```
+Sender A                    Server                    Receiver B
+    │                          │                          │
+    │ 1. Fetch B's key bundle  │                          │
+    │─────────────────────────►│                          │
+    │◄─────────────────────────│                          │
+    │ (IK_B, SPK_B, OPK_B)    │                          │
+    │                          │                          │
+    │ 2. X3DH Key Agreement    │                          │
+    │ (local computation)      │                          │
+    │                          │                          │
+    │ 3. Derive Session Key    │                          │
+    │ 4. Encrypt message       │                          │
+    │    (AES-256-GCM)         │                          │
+    │                          │                          │
+    │ 5. Send encrypted blob   │                          │
+    │─────────────────────────►│                          │
+    │                          │ 6. Store & forward       │
+    │                          │─────────────────────────►│
+    │                          │                          │
+    │                          │           7. B decrypts  │
+    │                          │           (local key)    │
+```
+
+### 5.4 Group Encryption (Sender Keys)
+
+```
+Group Creation:
+1. Group admin generates group key pair
+2. Each member generates a SenderKey
+3. SenderKeys distributed to all members via encrypted 1-to-1 channels
+4. Messages encrypted with sender's SenderKey
+5. All members can decrypt (they have all SenderKeys)
+
+Member Addition:
+- New member receives all existing SenderKeys via encrypted channel
+- Optional: Key rotation on member add (configurable)
+
+Member Removal:
+- Mandatory SenderKey rotation for all remaining members
+- Ensures forward secrecy after member removal
+```
+
+### 5.5 Media Encryption
+
+```
+Upload Flow:
+1. Client generates random AES-256-GCM key + IV
+2. File encrypted locally (client-side)
+3. Encrypted blob uploaded to Storage Service
+4. Encrypted media key shared with recipient(s) via E2E encrypted message
+5. CDN serves only encrypted blobs
+
+Download Flow:
+1. Client receives encrypted media key from message
+2. Client downloads encrypted blob from CDN
+3. Client decrypts blob locally
+4. Media rendered in-app only
+```
+
+### 5.6 Key Rotation Policy
+
+| Key Type | Rotation Interval | Trigger |
+|----------|------------------|---------|
+| Identity Key | Never (device lifetime) | Device replacement |
+| Signed Pre-Key | Weekly | Time-based |
+| One-Time Pre-Keys | Per use | Consumption |
+| Group Sender Key | Member remove + weekly | Event + time-based |
+| Session Ratchet | Per message | Automatic |
+
+---
+
+## 6. Database Strategy
+
+### 6.1 Database Architecture
+
+**Primary Database**: MySQL 8.0+ (InnoDB)  
+**Configuration**: Environment variables only — no hardcoded credentials
+
+```
+Environment Variables:
+DB_NAME=chat_app
+DB_USER=<env>
+DB_PASS=<env>
+DB_HOST=<env>
+DB_PORT=3306
+DB_DIALECT=mysql
+DB_POOL_MAX=20
+DB_POOL_MIN=5
+DB_POOL_ACQUIRE=30000
+DB_POOL_IDLE=10000
+DB_SSL=true
+```
+
+### 6.2 Database Topology
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    MySQL Architecture                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Primary (Write)          Replica 1 (Read)                   │
+│  ┌─────────────┐          ┌─────────────┐                   │
+│  │  MySQL 8.0  │──sync───►│  MySQL 8.0  │                   │
+│  │  (Primary)  │          │  (Replica)  │                   │
+│  └─────────────┘          └─────────────┘                   │
+│         │                                                    │
+│         └──sync──────────►┌─────────────┐                   │
+│                           │  MySQL 8.0  │ Replica 2 (Read)  │
+│                           │  (Replica)  │                   │
+│                           └─────────────┘                   │
+│                                                              │
+│  ProxySQL (Connection pooling + read/write split)            │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 6.3 Database Sharding Strategy
+
+**Sharding Key**: `user_id` (consistent hashing)
+
+| Data Type | Strategy | Rationale |
+|-----------|---------|-----------|
+| Users, Profiles | Single shard (user_id) | Low volume, high access |
+| Messages | Sharded by chat_id | Hotspot prevention |
+| Media metadata | Sharded by user_id | Co-located with user |
+| Events/Analytics | Time-partitioned | Efficient range scans |
+
+### 6.4 Redis Architecture
+
+```
+Redis Cluster (6 nodes: 3 primary + 3 replica)
+
+Usage:
+├── Session Store (TTL-based)
+├── JWT Blacklist (token revocation)
+├── Rate Limiting (sliding window counters)
+├── Presence Data (online/offline)
+├── Typing Indicators (short TTL)
+├── Message Queue Results (temporary)
+├── OTP Verification Codes (60s TTL)
+└── Pub/Sub (real-time event distribution)
+```
+
+### 6.5 Core Data Models (Logical)
+
+> Detailed physical schema generated in Phase 2
+
+**Users & Auth Domain**
+- `users` — core identity record
+- `devices` — registered devices per user
+- `sessions` — active sessions
+- `login_history` — audit trail
+- `refresh_tokens` — token store
+
+**Messaging Domain**
+- `chats` — chat sessions metadata
+- `chat_members` — participants
+- `messages` — message content (encrypted)
+- `message_status` — delivery/read receipts
+- `reactions` — emoji reactions
+- `attachments` — media references
+
+**Groups & Channels**
+- `groups` — group metadata
+- `group_members` — membership + roles
+- `channels` — channel metadata
+- `channel_subscribers` — subscriptions
+
+**Encryption Domain**
+- `identity_keys` — per-device public keys
+- `pre_key_bundles` — pre-key store
+- `sender_keys` — group sender keys
+
+**Media Domain**
+- `media_files` — file metadata + S3 reference
+- `upload_sessions` — chunked upload state
+
+**Calls**
+- `call_sessions` — call metadata
+- `call_participants` — participants + quality metrics
+
+---
+
+## 7. API Strategy
+
+### 7.1 API Design Principles
+
+| Principle | Implementation |
+|-----------|---------------|
+| REST for CRUD | Standard HTTP verbs, resource-based URLs |
+| gRPC for internal | Protocol Buffers, service mesh |
+| WebSocket for real-time | Socket.IO, namespaced events |
+| GraphQL (future) | Admin dashboard queries (Phase 3+) |
+| API versioning | `/api/v1/`, `/api/v2/` — URL-based |
+
+### 7.2 API Gateway Configuration
+
+```
+Base URL: https://api.nexchat.io
+
+Routes:
+/api/v1/auth/*          → Authentication Service
+/api/v1/users/*         → User Service
+/api/v1/profile/*       → Profile Service
+/api/v1/contacts/*      → Contact Service
+/api/v1/chats/*         → Chat Service
+/api/v1/messages/*      → Message Service
+/api/v1/groups/*        → Group Service
+/api/v1/channels/*      → Channel Service
+/api/v1/media/*         → Media Service
+/api/v1/calls/*         → Call Services
+/api/v1/search/*        → Search Service
+/api/v1/notifications/* → Notification Service
+/api/v1/devices/*       → Device Service
+
+WebSocket: wss://ws.nexchat.io
+```
+
+### 7.3 API Authentication Flow
+
+```
+1. Client → POST /api/v1/auth/verify-otp
+   Response: { access_token, refresh_token, device_id }
+
+2. Client attaches: Authorization: Bearer <access_token>
+
+3. API Gateway validates JWT (RS256, public key from JWKS endpoint)
+
+4. On 401: Client → POST /api/v1/auth/refresh
+   Body: { refresh_token }
+   Response: { new_access_token, new_refresh_token }
+```
+
+### 7.4 Rate Limiting Strategy
+
+| Tier | Limit | Window |
+|------|-------|--------|
+| Global per IP | 1000 req | 1 minute |
+| Authenticated per user | 500 req | 1 minute |
+| Auth endpoints | 10 req | 5 minutes |
+| Media upload | 50 req | 1 hour |
+| Search | 100 req | 1 minute |
+
+### 7.5 API Response Standard
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "page": 1,
+    "per_page": 50,
+    "total": 1000,
+    "cursor": "eyJ..."
+  },
+  "error": null,
+  "request_id": "uuid-v4",
+  "timestamp": "ISO-8601"
+}
+```
+
+---
+
+## 8. Real-Time Strategy
+
+### 8.1 WebSocket Architecture
+
+**Technology**: Socket.IO 4.x over WebSocket (with long-polling fallback)
+
+```
+Client Connection Flow:
+1. Client connects to wss://ws.nexchat.io
+2. Socket.IO handshake with JWT in auth header
+3. Session Service validates token
+4. Client joins namespaced rooms:
+   - /user/<user_id>
+   - /chat/<chat_id> (for each active chat)
+   - /group/<group_id>
+5. Presence Service marks user as online
+6. Redis Pub/Sub distributes events to correct Socket.IO node
+```
+
+### 8.2 Socket.IO Event Taxonomy
+
+**Outbound Events (Server → Client)**
+
+| Event | Payload | Purpose |
+|-------|---------|---------|
+| `message:new` | message object | New message received |
+| `message:edited` | message_id + new content | Message edited |
+| `message:deleted` | message_id | Message deleted |
+| `message:status` | message_id + status | Delivery/read update |
+| `typing:start` | user_id + chat_id | Typing started |
+| `typing:stop` | user_id + chat_id | Typing stopped |
+| `presence:update` | user_id + status | Online/offline change |
+| `call:incoming` | call session data | Incoming call |
+| `call:ended` | call_id | Call ended |
+| `reaction:added` | message_id + reaction | Reaction added |
+| `reaction:removed` | message_id + reaction | Reaction removed |
+| `chat:created` | chat object | New chat created |
+| `group:updated` | group metadata | Group info changed |
+| `notification:push` | notification payload | In-app notification |
+
+**Inbound Events (Client → Server)**
+
+| Event | Purpose |
+|-------|---------|
+| `typing:start` | Broadcast typing status |
+| `message:ack` | Acknowledge message receipt |
+| `call:accept` | Accept incoming call |
+| `call:reject` | Reject incoming call |
+| `presence:heartbeat` | Keep-alive |
+
+### 8.3 Horizontal Scaling of WebSockets
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Socket.IO   │     │  Socket.IO   │     │  Socket.IO   │
+│  Node 1      │     │  Node 2      │     │  Node 3      │
+└──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+       │                    │                    │
+       └────────────────────┼────────────────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  Redis Adapter  │
+                   │  (Pub/Sub)      │
+                   └─────────────────┘
+```
+
+### 8.4 Message Delivery Guarantee
+
+```
+Delivery States:
+PENDING → SENT → DELIVERED → READ
+
+Flow:
+1. Client sends message via WebSocket
+2. Server assigns message_id + timestamp
+3. Server broadcasts SENT event back to sender
+4. Server stores message in DB
+5. Server publishes to RabbitMQ (persistent)
+6. Notification Service picks up if recipient offline
+7. When recipient connects, pending messages delivered
+8. Recipient sends ACK → DELIVERED status updated
+9. Recipient opens chat → READ status updated
+```
+
+---
+
+## 9. Voice & Video Strategy
+
+### 9.1 WebRTC Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    WebRTC Infrastructure                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Signaling: WebSocket (Socket.IO)                           │
+│  ICE Gathering: STUN + TURN                                 │
+│                                                              │
+│  1-to-1 Calls: Peer-to-Peer (P2P) preferred                 │
+│  Group Calls: SFU (Selective Forwarding Unit)               │
+│               → mediasoup 3.x                               │
+│                                                              │
+│  STUN Server: coturn (self-hosted) + Google STUN fallback   │
+│  TURN Server: coturn (self-hosted, multi-region)            │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 9.2 1-to-1 Call Flow
+
+```
+Caller (A)          Signaling Server          Callee (B)
+   │                       │                      │
+   │── call:initiate ──────►│                      │
+   │                       │── call:incoming ─────►│
+   │                       │                      │
+   │◄──────────────────── call:ringing ────────────│
+   │                       │                      │
+   │                       │◄──── call:accept ─────│
+   │◄──────────── call:accepted ───────────────────│
+   │                       │                      │
+   │── ICE candidates ─────►│──── ICE candidates ──►│
+   │◄──── ICE candidates ───│◄─── ICE candidates ───│
+   │                       │                      │
+   │◄══════════ P2P Media Stream (Encrypted) ══════│
+```
+
+### 9.3 Group Call Architecture (SFU)
+
+```
+Participant A ──► SFU (mediasoup) ──► Participant B
+Participant C ──► SFU (mediasoup) ──► Participant C
+Participant B ──► SFU (mediasoup) ──► Participant A
+
+- SFU receives streams from each participant
+- Selectively forwards streams to each subscriber
+- Supports up to 200 participants per group call
+- Adaptive bitrate per subscriber connection quality
+```
+
+### 9.4 Voice Quality Features
+
+| Feature | Implementation |
+|---------|---------------|
+| Noise Suppression | WebRTC built-in + RNNoise |
+| Echo Cancellation | WebRTC AEC built-in |
+| Adaptive Bitrate | WebRTC built-in GCC |
+| Bandwidth Estimation | WebRTC REMB/TWCC |
+| Codec | Opus (audio), VP8/VP9/H.264 (video) |
+
+### 9.5 Call Recording Architecture
+
+```
+Recording is server-side (mediasoup → GStreamer → S3)
+1. On recording start: mediasoup pipes streams to GStreamer
+2. GStreamer encodes to MP4 (H.264 + AAC)
+3. Chunks uploaded to encrypted S3 bucket
+4. Post-call: Final MP4 assembled and stored
+5. Recording URL delivered to participants
+```
+
+### 9.6 TURN Server Infrastructure
+
+| Region | Servers | Protocol |
+|--------|---------|---------|
+| US-East | 2x coturn | UDP/TCP/TLS |
+| EU-West | 2x coturn | UDP/TCP/TLS |
+| AP-South | 2x coturn | UDP/TCP/TLS |
+
+---
+
+## 10. Media System Strategy
+
+### 10.1 Supported Media Types
+
+| Type | Max Size | Processing |
+|------|----------|-----------|
+| Images | 25 MB | Resize, thumbnail, WebP conversion |
+| Videos | 2 GB | Transcode (HLS), thumbnail |
+| Audio | 100 MB | Normalize, waveform generation |
+| Documents | 500 MB | Virus scan, preview generation |
+| Voice Notes | 25 MB | Waveform generation |
+
+### 10.2 Chunked Upload Architecture
+
+```
+Client                        Media Service              Storage
+  │                                │                       │
+  │ POST /media/upload/init        │                       │
+  │ {file_size, mime, chunk_count} │                       │
+  │──────────────────────────────►│                       │
+  │◄────────── {upload_id} ────────│                       │
+  │                                │                       │
+  │ PUT /media/upload/{id}/chunk/1 │                       │
+  │──────────────────────────────►│──────── S3 multipart ─►│
+  │◄─────── {chunk_ack} ───────────│◄─────────────────────│
+  │                                │                       │
+  │ PUT /media/upload/{id}/chunk/N │                       │
+  │──────────────────────────────►│──────── S3 multipart ─►│
+  │                                │                       │
+  │ POST /media/upload/{id}/complete│                      │
+  │──────────────────────────────►│─── S3 complete ───────►│
+  │◄──────── {media_url} ──────────│                       │
+```
+
+### 10.3 Media Processing Pipeline
+
+```
+Upload Complete
+      │
+      ▼
+Virus Scan (ClamAV) ──FAIL──► Quarantine + Alert
+      │ PASS
+      ▼
+MIME Validation ──FAIL──► Reject
+      │ PASS
+      ▼
+Encrypt (AES-256-GCM) ──► Encrypted Blob → S3
+      │
+      ▼
+Generate Thumbnail
+      │
+      ▼
+Transcode (if video) → HLS segments → S3
+      │
+      ▼
+Update media_files record
+      │
+      ▼
+Return CDN URL (signed, TTL)
+```
+
+### 10.4 CDN Architecture
+
+```
+Storage (MinIO/S3)
+       │
+       ▼
+CDN Origin (CloudFront / custom Nginx)
+       │
+       ▼
+Edge Nodes (Global PoPs)
+       │
+       ▼
+Client (signed URL, TTL=1hr)
+```
+
+---
+
+## 11. UI/UX Strategy
+
+### 11.1 Design Philosophy
+- **Mobile-first**: All layouts designed for 320px minimum
+- **Progressive Enhancement**: Core functionality without JS
+- **Accessibility**: WCAG 2.1 AA compliance
+- **Performance**: Core Web Vitals targets: LCP < 2.5s, FID < 100ms, CLS < 0.1
+
+### 11.2 Application Structure
+
+**Web App Layout**
+```
+┌───────────────────────────────────────────────────────┐
+│                    Top Navigation Bar                  │
+├────────────────┬──────────────────────────────────────┤
+│  Sidebar       │         Main Content Area            │
+│  (Chat List)   │  ┌────────────────────────────────┐  │
+│                │  │       Chat Header              │  │
+│  ─ Search      │  ├────────────────────────────────┤  │
+│  ─ Folders     │  │                                │  │
+│  ─ Chat Items  │  │      Message Thread            │  │
+│  ─ Settings    │  │      (Virtualized List)        │  │
+│                │  │                                │  │
+│                │  ├────────────────────────────────┤  │
+│                │  │       Message Composer         │  │
+│                │  └────────────────────────────────┘  │
+└────────────────┴──────────────────────────────────────┘
+```
+
+### 11.3 State Management Architecture
+
+```
+Zustand Stores:
+├── authStore        — user identity, tokens
+├── chatStore        — chat list, active chat
+├── messageStore     — message cache per chat
+├── presenceStore    — online status map
+├── callStore        — active call state
+├── settingsStore    — user preferences + theme
+├── notificationStore— notification queue
+└── uiStore          — modal states, panels
+
+React Query:
+├── Server state (API data fetching + caching)
+├── Optimistic updates for messages
+├── Infinite queries for message pagination
+└── Background refetching for presence
+```
+
+### 11.4 Performance Strategies
+
+| Strategy | Implementation |
+|----------|---------------|
+| Message Virtualization | TanStack Virtual (render only visible messages) |
+| Code Splitting | React.lazy + Vite chunking per route |
+| Image Lazy Loading | Intersection Observer API |
+| Service Worker | Offline support + push notifications |
+| WebWorkers | Encryption/decryption off main thread |
+| IndexedDB | Local message cache for offline |
+
+---
+
+## 12. Design System Strategy
+
+### 12.1 Font System
+
+```css
+/* Primary Font */
+font-family: 'Figtree', sans-serif;
+/* Weights: 300, 400, 500, 600, 700, 800, 900 */
+```
+
+### 12.2 Color Token System
+
+All colors defined in ONE location: `packages/design-system/tokens/colors.ts`
+
+**Base Palette**
+```
+Primary:      #A808F9
+Secondary:    #0DFDFE
+Accent:       #5E008C
+Success:      #2B8A20
+Background:   #001000
+```
+
+**Semantic Tokens (Dark Theme)**
+```
+--color-bg-base:          #001000
+--color-bg-surface:       #0a1a0a
+--color-bg-elevated:      #112211
+--color-bg-overlay:       #1a2d1a
+
+--color-text-primary:     #F0FFF0
+--color-text-secondary:   #A0CFA0
+--color-text-muted:       #5A8A5A
+--color-text-disabled:    #2A5A2A
+
+--color-primary:          #A808F9
+--color-primary-hover:    #C040FF
+--color-primary-active:   #8A00D4
+
+--color-secondary:        #0DFDFE
+--color-secondary-hover:  #40FEFF
+--color-secondary-active: #00D4D5
+
+--color-accent:           #5E008C
+--color-success:          #2B8A20
+--color-warning:          #C87D00
+--color-error:            #C82020
+--color-info:             #0070C8
+
+--color-border-default:   #1E3A1E
+--color-border-strong:    #2E5A2E
+```
+
+**Light Theme Overrides**
+```
+--color-bg-base:          #F8FFF8
+--color-bg-surface:       #FFFFFF
+--color-text-primary:     #001000
+--color-text-secondary:   #2A5A2A
+```
+
+### 12.3 Design Token Categories
+
+| Category | Tokens |
+|----------|--------|
+| Color | Primary palette, semantic colors, state colors |
+| Typography | Font family, sizes, weights, line heights |
+| Spacing | 4px base grid: 4, 8, 12, 16, 24, 32, 48, 64 |
+| Border Radius | none, sm(4px), md(8px), lg(16px), xl(24px), full |
+| Shadows | sm, md, lg, glow-primary, glow-secondary |
+| Motion | duration-fast(150ms), normal(250ms), slow(400ms) |
+| Z-index | base, dropdown, modal, overlay, toast |
+
+### 12.4 Component Library Architecture
+
+```
+packages/design-system/
+├── tokens/
+│   ├── colors.ts
+│   ├── typography.ts
+│   ├── spacing.ts
+│   └── index.ts
+├── components/
+│   ├── primitives/       (Button, Input, Badge, Avatar)
+│   ├── composite/        (MessageBubble, ChatListItem)
+│   ├── feedback/         (Toast, Modal, Skeleton, Empty)
+│   └── layout/           (Container, Stack, Grid)
+├── hooks/
+│   └── useTheme.ts
+└── index.ts
+```
+
+---
+
+## 13. DevOps Strategy
+
+### 13.1 Environment Tiers
+
+| Environment | Purpose | Infrastructure |
+|-------------|---------|---------------|
+| **Local** | Individual dev | Docker Compose |
+| **Development** | Team integration | Single k8s cluster, scaled-down |
+| **Staging** | Pre-prod validation | Production mirror (75% capacity) |
+| **Production** | Live users | Full HA multi-region |
+
+### 13.2 Docker Architecture
+
+```
+Docker Compose (Local Dev):
+services:
+  - api-gateway
+  - auth-service
+  - user-service
+  - message-service
+  - chat-service
+  - media-service
+  - notification-service
+  - presence-service
+  - mysql (primary)
+  - redis
+  - rabbitmq
+  - minio (S3-compatible)
+  - coturn (TURN/STUN)
+  - prometheus
+  - grafana
+  - loki
+
+Networks:
+  - internal (service mesh)
+  - external (gateway exposed)
+```
+
+### 13.3 Kubernetes Architecture
+
+```
+k8s Cluster Structure:
+├── Namespaces:
+│   ├── nexchat-core       (primary services)
+│   ├── nexchat-media      (media processing)
+│   ├── nexchat-calls      (WebRTC services)
+│   ├── nexchat-monitoring (Prometheus, Grafana)
+│   └── nexchat-infra      (MySQL, Redis, RabbitMQ)
+│
+├── Per Service:
+│   ├── Deployment (HPA enabled)
+│   ├── Service (ClusterIP/LoadBalancer)
+│   ├── ConfigMap (non-secret config)
+│   ├── Secret (from Vault/Secrets Manager)
+│   └── PodDisruptionBudget
+│
+└── Cluster-wide:
+    ├── Ingress Controller (Nginx)
+    ├── Cert Manager (Let's Encrypt)
+    ├── Horizontal Pod Autoscaler
+    ├── Cluster Autoscaler
+    └── Network Policies (Zero Trust)
+```
+
+### 13.4 Monitoring Architecture
+
+```
+Application Metrics:
+  Services → Prometheus (scrape) → Grafana (dashboard)
+
+Custom Dashboards:
+  ├── Service Health Dashboard
+  ├── Message Throughput Dashboard
+  ├── WebSocket Connections Dashboard
+  ├── Call Quality Dashboard
+  ├── Error Rate Dashboard
+  └── Business Metrics Dashboard
+
+Alerts:
+  Prometheus AlertManager → PagerDuty / Slack
+```
+
+### 13.5 Logging Architecture
+
+```
+Services → Loki (log aggregation) → Grafana (log search)
+Services → Filebeat → Elasticsearch → Kibana (ELK)
+
+Log Format: Structured JSON
+{
+  "timestamp": "ISO-8601",
+  "level": "info|warn|error",
+  "service": "message-service",
+  "trace_id": "uuid",
+  "span_id": "uuid",
+  "user_id": "uuid",
+  "message": "...",
+  "metadata": {}
+}
+```
+
+### 13.6 CI/CD Pipeline (GitHub Actions)
+
+```
+On Pull Request:
+  ├── Lint (ESLint, TypeScript check)
+  ├── Unit Tests
+  ├── Integration Tests
+  ├── Security Scan (Snyk, Trivy)
+  └── Build Verification
+
+On Merge to main:
+  ├── All PR checks
+  ├── Docker build + push (GHCR)
+  ├── Deploy to Development
+  └── Smoke tests
+
+On Release Tag:
+  ├── Deploy to Staging
+  ├── E2E Tests (Playwright)
+  ├── Performance Tests (k6)
+  ├── Security Scan
+  ├── Manual approval gate
+  └── Deploy to Production (rolling update)
+```
+
+### 13.7 Backup Strategy
+
+| Data | Frequency | Retention | Method |
+|------|-----------|-----------|--------|
+| MySQL | Continuous | 30 days | binlog streaming to S3 |
+| Redis | Hourly RDB | 7 days | S3 |
+| S3 Media | Cross-region replication | Perpetual | AWS CRR |
+| Config/Secrets | On change | Versioned | Git + Vault |
+
+### 13.8 Disaster Recovery Plan
+
+| Scenario | RTO | RPO | Action |
+|----------|-----|-----|--------|
+| Single service failure | 30s | 0 | k8s auto-restart |
+| AZ failure | 2 min | 30s | Cross-AZ failover |
+| Region failure | 15 min | 5 min | DNS failover to secondary region |
+| DB corruption | 1 hour | 5 min | Point-in-time restore |
+| Full platform failure | 4 hours | 15 min | Full stack restore from backup |
+
+---
+
+## 14. Deployment Strategy
+
+### 14.1 Production Infrastructure
+
+```
+Global Infrastructure:
+├── DNS: Route53 with latency-based routing
+├── CDN: CloudFront (media) + Cloudflare (WAF)
+├── Load Balancer: AWS ALB (per region)
+├── k8s: EKS (per region)
+├── Database: RDS MySQL Multi-AZ
+├── Cache: ElastiCache Redis Cluster
+├── Queue: Amazon MQ (RabbitMQ)
+├── Storage: S3 + CloudFront
+└── Secrets: AWS Secrets Manager
+```
+
+### 14.2 Release Strategy
+
+| Strategy | When | Details |
+|----------|------|---------|
+| Rolling Update | Standard release | 25% at a time, health check gate |
+| Blue/Green | Major release | Full duplicate environment, instant cutover |
+| Canary | Risky feature | 5% → 25% → 100% traffic shift |
+| Feature Flags | All features | LaunchDarkly / custom flag service |
+
+---
+
+## 15. Folder Structure Strategy
+
+### 15.1 Monorepo Structure
+
+```
+nexchat/                              ← Git root
+├── apps/
+│   ├── web/                          ← React Web App (Vite)
+│   ├── mobile/                       ← React Native (iOS + Android)
+│   ├── desktop/                      ← Tauri + React
+│   ├── admin/                        ← Admin Panel (React)
+│   ├── marketing/                    ← Public Website (React)
+│   └── backend/                      ← Node.js Microservices
+│       ├── gateway/                  ← API Gateway
+│       ├── services/
+│       │   ├── auth-service/
+│       │   ├── user-service/
+│       │   ├── profile-service/
+│       │   ├── contact-service/
+│       │   ├── chat-service/
+│       │   ├── message-service/
+│       │   ├── group-service/
+│       │   ├── channel-service/
+│       │   ├── media-service/
+│       │   ├── notification-service/
+│       │   ├── voice-service/
+│       │   ├── video-service/
+│       │   ├── presence-service/
+│       │   ├── search-service/
+│       │   ├── encryption-service/
+│       │   ├── device-service/
+│       │   ├── session-service/
+│       │   ├── analytics-service/
+│       │   ├── audit-service/
+│       │   ├── admin-service/
+│       │   ├── moderation-service/
+│       │   ├── billing-service/
+│       │   └── storage-service/
+│       └── shared/                   ← Shared backend utilities
+│
+├── packages/
+│   ├── design-system/                ← Shared UI components + tokens
+│   ├── types/                        ← Shared TypeScript types
+│   ├── utils/                        ← Shared utilities
+│   ├── crypto/                       ← E2E encryption library
+│   └── api-client/                   ← Generated API client
+│
+├── infrastructure/
+│   ├── docker/
+│   │   ├── docker-compose.yml        ← Local dev
+│   │   └── docker-compose.prod.yml
+│   ├── kubernetes/
+│   │   ├── base/                     ← Base k8s manifests
+│   │   └── overlays/                 ← Kustomize overlays (dev/staging/prod)
+│   ├── terraform/                    ← Infrastructure as Code
+│   └── helm/                         ← Helm charts
+│
+├── .github/
+│   └── workflows/                    ← GitHub Actions CI/CD
+│
+├── docs/
+│   ├── architecture/
+│   ├── api/
+│   └── runbooks/
+│
+├── scripts/                          ← Dev utility scripts
+├── .env.example                      ← Environment variable templates
+├── turbo.json                        ← Turborepo config
+├── package.json                      ← Root package (workspaces)
+└── tsconfig.base.json                ← Shared TypeScript config
+```
+
+### 15.2 Per-Service Structure (Backend)
+
+```
+services/<service-name>/
+├── src/
+│   ├── config/           ← Service configuration (env vars only)
+│   ├── controllers/      ← Request handlers
+│   ├── services/         ← Business logic
+│   ├── repositories/     ← DB layer (Sequelize models)
+│   ├── middleware/        ← Express middleware
+│   ├── routes/           ← Express routes
+│   ├── events/           ← RabbitMQ event handlers
+│   ├── validators/        ← Zod/Joi validation schemas
+│   ├── utils/            ← Service utilities
+│   └── index.ts          ← Entry point
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── Dockerfile
+├── .env.example
+└── package.json
+```
+
+### 15.3 Frontend App Structure
+
+```
+apps/web/src/
+├── components/           ← UI components (consume design-system)
+│   ├── chat/
+│   ├── messages/
+│   ├── calls/
+│   ├── groups/
+│   └── shared/
+├── pages/                ← Route pages
+├── stores/               ← Zustand stores
+├── hooks/                ← Custom React hooks
+├── queries/              ← React Query definitions
+├── socket/               ← Socket.IO client setup
+├── crypto/               ← Client-side encryption
+├── utils/
+├── types/
+├── assets/
+└── App.tsx
+```
+
+---
+
+## 16. Compliance Strategy
+
+### 16.1 Legal Documents Required
+
+| Document | Scope | Priority |
+|----------|-------|---------|
+| Privacy Policy | GDPR + CCPA | P0 |
+| Terms of Service | Global | P0 |
+| Cookie Policy | GDPR | P0 |
+| Data Retention Policy | GDPR | P0 |
+| Acceptable Use Policy | Anti-abuse | P1 |
+| Content Moderation Policy | Trust & Safety | P1 |
+| Community Guidelines | User behavior | P1 |
+
+### 16.2 GDPR Compliance Architecture
+
+| Requirement | Implementation |
+|-------------|---------------|
+| Right to Access | Data export API (JSON/CSV) |
+| Right to Erasure | Account deletion + data purge pipeline |
+| Right to Rectification | Profile update endpoints |
+| Data Portability | Structured export format |
+| Consent Management | Granular consent store |
+| DPA Records | Audit Service logging |
+| Breach Notification | Automated alert + 72h reporting |
+| Data Minimization | Collect only necessary fields |
+
+### 16.3 CCPA Compliance Architecture
+
+| Requirement | Implementation |
+|-------------|---------------|
+| Right to Know | Data access API |
+| Right to Delete | Deletion pipeline |
+| Right to Opt-Out | Sale of data opt-out (not applicable — no data selling) |
+| Non-Discrimination | Identical service regardless of privacy choices |
+
+### 16.4 Data Retention Policy
+
+| Data Type | Retention | After Expiry |
+|-----------|-----------|-------------|
+| Messages (E2E) | User-controlled | Permanent delete |
+| Media files | 1 year inactive | Delete from CDN + S3 |
+| Login history | 90 days | Auto-purge |
+| Audit logs | 7 years | Archive to cold storage |
+| Analytics events | 2 years | Anonymize |
+
+---
+
+## 17. Admin & Analytics Platform
+
+### 17.1 Admin Panel Modules
+
+| Module | Features |
+|--------|---------|
+| **User Management** | Search, view, suspend, delete, impersonate (audit-logged) |
+| **Moderation** | Report queue, content review, automated action review |
+| **Audit Logs** | Immutable action log, search, export |
+| **Analytics** | DAU/MAU charts, retention, message volume |
+| **Service Monitoring** | Real-time health, latency, error rates |
+| **Security Dashboard** | Failed logins, suspicious IPs, key rotation status |
+| **Feature Flags** | Toggle features per user/group/globally |
+| **System Config** | Rate limits, file size limits, maintenance mode |
+
+### 17.2 Analytics Dashboards
+
+| Dashboard | Metrics |
+|-----------|---------|
+| **Growth** | New registrations, DAU, MAU, WAU |
+| **Retention** | Day 1/7/30 retention, churn rate |
+| **Engagement** | Messages/day, calls/day, media uploads |
+| **Infrastructure** | CPU/memory/network per service |
+| **Storage** | Total storage, growth rate, CDN bandwidth |
+| **Geography** | Users by country, messages by region |
+| **Devices** | iOS/Android/Web/Desktop breakdown |
+
+---
+
+## 18. Public Marketing Website
+
+### 18.1 Page Sections
+
+| Section | Design Inspiration |
+|---------|--------------------|
+| Hero | Full-viewport with animated gradient background, device mockups |
+| Features | Feature grid with animated icons + micro-interactions |
+| Security | Visual encryption flow diagram, trust indicators |
+| Calling | Split-screen call demo with quality stats |
+| File Sharing | Drag-drop demo with file types |
+| Testimonials | Auto-scrolling quote carousel |
+| Pricing | Tiered pricing cards with feature comparison |
+| FAQ | Accordion with search |
+| Blog | Card grid with category filters |
+| Download | Platform download grid with QR codes |
+
+### 18.2 Design Quality Standard
+
+Design reference tier: **Stripe + Linear + Notion**
+- Glassmorphism cards
+- Animated gradient meshes
+- Parallax scroll effects
+- Micro-animations on scroll entry
+- Dark mode as default
+- Premium typography with Figtree
+
+---
+
+## 19. Roadmap & Development Phases
+
+### Phase 1 — Foundation (Weeks 1–4)
+- [x] Architecture planning (this document)
+- [ ] Monorepo setup (Turborepo)
+- [ ] Design system tokens + core components
+- [ ] Database schema design (all tables)
+- [ ] Auth Service + User Service
+- [ ] API Gateway
+- [ ] Basic web app shell
+
+### Phase 2 — Core Messaging (Weeks 5–10)
+- [ ] Chat Service + Message Service
+- [ ] WebSocket real-time layer
+- [ ] E2E Encryption library
+- [ ] Group Service + Channel Service
+- [ ] Presence Service
+- [ ] Notification Service
+- [ ] Mobile app core
+
+### Phase 3 — Media & Calls (Weeks 11–16)
+- [ ] Media Service (upload pipeline)
+- [ ] Voice Call Service (WebRTC)
+- [ ] Video Call Service (SFU)
+- [ ] TURN/STUN infrastructure
+- [ ] Desktop app (Tauri)
+
+### Phase 4 — Platform & Admin (Weeks 17–20)
+- [ ] Admin Panel
+- [ ] Analytics Service + dashboards
+- [ ] Moderation Service
+- [ ] Search Service
+
+### Phase 5 — Marketing & Launch (Weeks 21–24)
+- [ ] Marketing website
+- [ ] Legal pages
+- [ ] Performance optimization
+- [ ] Security audit
+- [ ] Load testing (k6)
+- [ ] Production deployment
+
+---
+
+## 20. Team Structure
+
+| Role | Count | Responsibility |
+|------|-------|---------------|
+| Backend Engineers | 4 | Microservices, APIs, DB |
+| Frontend Engineers | 3 | Web App, Admin, Marketing |
+| Mobile Engineers | 2 | React Native (iOS + Android) |
+| Desktop Engineer | 1 | Tauri Desktop |
+| DevOps Engineer | 2 | k8s, CI/CD, Monitoring |
+| Security Engineer | 1 | Encryption, pen testing |
+| UI/UX Designer | 1 | Design system, user research |
+| QA Engineer | 2 | Manual + automated testing |
+| Product Manager | 1 | Requirements, roadmap |
+| **Total** | **17** | |
+
+---
+
+## 21. Risk Analysis
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|-----------|
+| E2E Encryption complexity | High | High | Use proven Signal Protocol library |
+| WebRTC group call scale | Medium | High | SFU (mediasoup) + horizontal scale |
+| MySQL at chat scale | Medium | High | Sharding + read replicas + Redis cache |
+| Firebase OTP cost | Low | Medium | Monitor usage, implement rate limits |
+| Security breach | Low | Critical | Zero-trust + regular pen testing |
+| Regulatory compliance | Medium | High | Legal counsel + GDPR-first design |
+| Team velocity | Medium | Medium | Phased roadmap + feature flags |
+| Storage costs | Low | Medium | Tiered storage + media expiry |
+
+---
+
+## 22. Cost Estimation
+
+### Development Infrastructure (Monthly)
+
+| Service | Dev | Staging | Production |
+|---------|-----|---------|-----------|
+| k8s (EKS) | $200 | $400 | $2,000+ |
+| RDS MySQL | $100 | $300 | $800+ |
+| ElastiCache Redis | $50 | $100 | $400+ |
+| S3 + CDN | $50 | $100 | $500+ |
+| TURN Servers | $50 | $100 | $300+ |
+| Monitoring | $30 | $50 | $200+ |
+| Firebase Auth | $0 | $0 | Pay-per-use |
+| **Subtotal** | **~$480** | **~$1,050** | **~$4,200+** |
+
+### Development Cost (6-month build, 17 team members)
+
+| Category | Cost |
+|----------|------|
+| Engineering salaries | $500,000+ |
+| Infrastructure | $30,000 |
+| Tools & licenses | $10,000 |
+| Security audit | $15,000 |
+| Legal (compliance docs) | $20,000 |
+| **Total Estimate** | **~$575,000** |
+
+> *Figures are estimates and vary by region and seniority level.*
+
+---
+
+## Finalized Architecture Decisions
+
+> [!NOTE]
+> All decisions confirmed by product owner. Implementation begins immediately.
+
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | **Project Location** | `D:\NexChat\` — completely separate from `D:\Saas\` |
+| 2 | **Monorepo Tool** | ✅ Turborepo |
+| 3 | **Signal Protocol** | ✅ Use existing library — do NOT build custom cryptography |
+| 4 | **SFU** | ✅ mediasoup |
+| 5 | **Search Engine** | ✅ OpenSearch |
+| 6 | **Mobile Codebase** | ✅ Single shared React Native codebase (iOS + Android) |
+| 7 | **Call Recording** | ✅ Opt-in only |
+| 8 | **Firebase Credentials** | ✅ Added in later phase |
+| 9 | **Dev Order** | ✅ Revised roadmap — see Phase 2 below |
+
+---
+
+## Revised Development Roadmap
+
+### Phase 2.1 — Foundation (Monorepo + Design System + Auth + Users)
+- Turborepo monorepo scaffold at `D:\NexChat`
+- Design system (tokens, components, Tailwind theme)
+- Authentication Service (Firebase OTP + JWT)
+- User Service + Profile Service
+- API Gateway
+- Web App shell
+
+### Phase 2.2 — Core Messaging
+- Chat Service
+- Message Service
+- WebSocket real-time layer (Socket.IO)
+- Presence Service
+- Notification Service
+- E2E Encryption library
+
+### Phase 2.3 — Media
+- Media Service (chunked upload, encryption)
+- Storage Service (MinIO)
+- CDN architecture
+- Malware scanning pipeline
+
+### Phase 2.4 — Groups & Channels
+- Group Service
+- Channel Service
+- Contact Service
+- Search Service (OpenSearch)
+
+### Phase 2.5 — Voice Calls
+- Voice Call Service
+- WebRTC signaling
+- STUN/TURN (coturn)
+- Call quality monitoring
+
+### Phase 2.6 — Video Calls
+- Video Call Service
+- mediasoup SFU
+- Screen sharing
+- Opt-in recording pipeline
+
+### Phase 2.7 — Admin & Analytics
+- Admin Panel (full React app)
+- Admin Service + Moderation Service
+- Analytics Service + dashboards
+- Audit Service
+
+### Phase 2.8 — Marketing & Legal
+- Public marketing website
+- Legal pages (Privacy, ToS, Cookie, AUP)
+- SEO optimization
+- Performance audit
+- Production deployment
+
+---
+
+> **Document Status**: ✅ APPROVED — Implementation in progress.

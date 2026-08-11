@@ -4,14 +4,14 @@ import {
     FaTachometerAlt, FaBox, FaList, FaShoppingCart, FaTags, FaUsers, FaFileAlt,
     FaSignOutAlt, FaBullhorn, FaSearch, FaStore, FaShoppingBag, FaChartBar,
     FaCog, FaShieldAlt, FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory,
-    FaAd, FaChevronDown, FaChevronRight, FaExternalLinkAlt, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTimes
+    FaAd, FaChevronDown, FaChevronRight, FaExternalLinkAlt, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTimes, FaTruck
 } from 'react-icons/fa';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const ICON_MAP = {
     FaTachometerAlt, FaBox, FaList, FaShoppingCart, FaTags, FaUsers, FaFileAlt,
     FaBullhorn, FaSearch, FaStore, FaShoppingBag, FaChartBar, FaCog, FaShieldAlt,
-    FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory, FaAd, FaFileInvoiceDollar, FaCode, FaSlidersH,
+    FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory, FaAd, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTruck,
 };
 
 const getIcon = (iconName, className = '') => {
@@ -57,9 +57,12 @@ const NavItem = ({ module, depth = 0, isCollapsed = false, onCloseMobile }) => {
 // ─── Group Nav Item ───────────────────────────────────────────────────────────
 const NavGroup = ({ module, depth = 0, isCollapsed = false, onCloseMobile }) => {
     const location = useLocation();
-    const isChildActive = (module.children || []).some(child =>
-        child.route && location.pathname.startsWith(child.route)
-    );
+    const isChildActive = (module.children || []).some(child => {
+        if (!child.route) return false;
+        return child.route === '/admin'
+            ? location.pathname === '/admin'
+            : location.pathname.startsWith(child.route);
+    });
     const [open, setOpen] = useState(isChildActive);
 
     if (!module.children?.length && !module.route) return null;
@@ -196,6 +199,30 @@ const AdminSidebar = ({ isOpen, onCloseMobile, isCollapsed }) => {
 
             {/* Footer */}
             <div className="p-3 relative z-10 border-t border-white/5 bg-black/20 space-y-1.5">
+                <Link
+                    to="/admin/blogs"
+                    onClick={onCloseMobile}
+                    className={`flex items-center justify-center gap-2 w-full py-2 bg-white/5 text-indigo-300 rounded-xl hover:bg-white/10 hover:text-white transition-all font-semibold text-xs border border-white/5 ${
+                        isCollapsed ? 'px-0' : 'px-3'
+                    }`}
+                    title="Blog Manager"
+                >
+                    <FaFileAlt className="text-xs text-indigo-400" />
+                    {!isCollapsed && <span>Blog Articles</span>}
+                </Link>
+
+                <Link
+                    to="/admin/delivery-settings"
+                    onClick={onCloseMobile}
+                    className={`flex items-center justify-center gap-2 w-full py-2 bg-white/5 text-indigo-300 rounded-xl hover:bg-white/10 hover:text-white transition-all font-semibold text-xs border border-white/5 ${
+                        isCollapsed ? 'px-0' : 'px-3'
+                    }`}
+                    title="Delivery Settings"
+                >
+                    <FaTruck className="text-xs text-indigo-400" />
+                    {!isCollapsed && <span>Delivery Settings</span>}
+                </Link>
+
                 <Link
                     to="/"
                     target="_blank"

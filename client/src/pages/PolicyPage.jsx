@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { toast } from 'react-toastify';
 import api from '../services/api';
 import PolicyRenderer from '../components/policy/PolicyRenderer';
 import {
@@ -68,24 +68,12 @@ const PolicyPage = () => {
             }).catch(() => {});
         } else {
             navigator.clipboard.writeText(window.location.href);
-            alert('Policy link copied to clipboard!');
+            toast.info('Policy link copied to clipboard!');
         }
     };
 
     return (
         <div className="bg-[#f8fafc] min-h-screen py-10 px-4 md:px-8">
-            {/* Dynamic Helmet SEO */}
-            {policy && (
-                <Helmet>
-                    <title>{policy.seoTitle || `${policy.title} | BlueAgle Legal`}</title>
-                    <meta name="description" content={policy.seoDescription || `Read BlueAgle official ${policy.title}.`} />
-                    {policy.seoKeywords && <meta name="keywords" content={policy.seoKeywords} />}
-                    {policy.canonicalUrl && <link rel="canonical" href={policy.canonicalUrl} />}
-                    <meta property="og:title" content={policy.seoTitle || policy.title} />
-                    <meta property="og:description" content={policy.seoDescription || policy.title} />
-                    <meta property="og:type" content="article" />
-                </Helmet>
-            )}
 
             <div className="max-w-7xl mx-auto">
                 {/* Header Banner */}

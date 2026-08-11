@@ -17,8 +17,10 @@ const { sequelize, Role, Module, Permission, RolePermission, AdminUser } = requi
 const PERMISSION_TYPES = ['View', 'Create', 'Update', 'Delete', 'Export', 'Import', 'Approve', 'Reject', 'Publish', 'Unpublish', 'Manage'];
 
 const DEFAULT_MODULES = [
-    // Top-level
-    { name: 'Dashboard',     displayName: 'Dashboard',      slug: 'dashboard',    route: '/admin',             icon: 'FaTachometerAlt', sortOrder: 1,  parentSlug: null },
+    // Top-level Dashboard group
+    { name: 'Dashboard',     displayName: 'Dashboard',      slug: 'dashboard',    route: null,                 icon: 'FaTachometerAlt', sortOrder: 1,  parentSlug: null },
+    { name: 'DashboardOverview', displayName: 'Overview',   slug: 'dashboard-overview', route: '/admin',       icon: 'FaTachometerAlt', sortOrder: 1,  parentSlug: 'dashboard' },
+    { name: 'GoogleAnalytics', displayName: 'Google Analytics', slug: 'google-analytics', route: '/admin/analytics/google', icon: 'FaChartBar', sortOrder: 2, parentSlug: 'dashboard' },
     // Catalog group
     { name: 'Catalog',       displayName: 'Catalog',        slug: 'catalog',      route: null,                 icon: 'FaStore',         sortOrder: 2,  parentSlug: null },
     { name: 'Products',      displayName: 'Products',       slug: 'products',     route: '/admin/products',    icon: 'FaBox',           sortOrder: 1,  parentSlug: 'catalog' },
@@ -46,6 +48,7 @@ const DEFAULT_MODULES = [
     { name: 'InvoiceSettings', displayName: 'Invoice Settings', slug: 'invoice-settings', route: '/admin/rbac/invoice-builder/settings', icon: 'FaCog', sortOrder: 4, parentSlug: 'invoice-builder' },
     // Settings
     { name: 'Settings',      displayName: 'Settings',       slug: 'settings',     route: '/admin/settings',    icon: 'FaCog',           sortOrder: 9,  parentSlug: null },
+    { name: 'GaSettings',    displayName: 'Google Analytics Setup', slug: 'ga-settings', route: '/admin/settings/google-analytics', icon: 'FaCog', sortOrder: 1, parentSlug: 'settings' },
     // Administration group
     { name: 'Administration', displayName: 'Administration', slug: 'administration', route: null,              icon: 'FaShieldAlt',     sortOrder: 9,  parentSlug: null },
     { name: 'Modules',       displayName: 'Modules',        slug: 'modules',      route: '/admin/rbac/modules',          icon: 'FaCubes',     sortOrder: 1,  parentSlug: 'administration' },

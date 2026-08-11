@@ -5,20 +5,25 @@ const path = require('path');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif|mp4|webm/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+    console.log(`📁 [Multer FileFilter] Inspecting file: originalname="${file.originalname}", mimetype="${file.mimetype}"`);
+    
+    const allowedExtensions = /jpeg|jpg|png|gif|webp|svg|avif|bmp|heic|mp4|webm|mov|mkv/;
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+    const isExtAllowed = allowedExtensions.test(ext);
+    const isMimeAllowed = file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/');
 
-    if (extname && mimetype) {
+    if (isExtAllowed || isMimeAllowed) {
+        console.log(`✅ [Multer FileFilter] File accepted: ${file.originalname}`);
         return cb(null, true);
     } else {
-        cb('Error: Images/Videos Only!');
+        console.error(`❌ [Multer FileFilter] File REJECTED (unsupported type): ${file.originalname} (${file.mimetype})`);
+        cb(new Error(`Only images and videos are allowed! Received: ${file.mimetype}`), false);
     }
 };
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit (video support)
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
     fileFilter: fileFilter
 });
 

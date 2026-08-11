@@ -11,13 +11,15 @@ import {
 
 const PAGE_TYPES = ['static', 'product', 'category', 'subcategory', 'blog', 'cms', 'custom'];
 
+const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://blueagle.in';
+
 const SCHEMA_TEMPLATES = {
     Organization: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "BlueAgle",
-        "url": "http://localhost:5173",
-        "logo": "http://localhost:5173/logo.png",
+        "url": currentOrigin,
+        "logo": `${currentOrigin}/logo.png`,
         "sameAs": [
             "https://facebook.com/blueagle",
             "https://instagram.com/blueagle"
@@ -27,10 +29,10 @@ const SCHEMA_TEMPLATES = {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "BlueAgle Organics",
-        "url": "http://localhost:5173",
+        "url": currentOrigin,
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "http://localhost:5173/products?search={search_term_string}",
+            "target": `${currentOrigin}/products?search={search_term_string}`,
             "query-input": "required name=search_term_string"
         }
     }, null, 2),
@@ -38,7 +40,7 @@ const SCHEMA_TEMPLATES = {
         "@context": "https://schema.org/",
         "@type": "Product",
         "name": "Wood Pressed Groundnut Oil",
-        "image": ["http://localhost:5000/uploads/oil.png"],
+        "image": [`${currentOrigin}/logo.png`],
         "description": "Pure cold pressed oil extracted traditionally.",
         "brand": { "@type": "Brand", "name": "BlueAgle" },
         "offers": {
@@ -740,6 +742,56 @@ const SeoManager = () => {
                         <textarea rows={3} value={globalSettings.defaultDescription} onChange={(e) => setGlobalSettings({ ...globalSettings, defaultDescription: e.target.value })} className="w-full bg-gray-50 border p-3 rounded-xl text-xs font-medium" />
                     </div>
 
+                    {/* LOCAL BUSINESS & STORE SCHEMA SECTION */}
+                    <div className="pt-4 border-t space-y-4">
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                            <FaStore className="text-[#3c006b]" /> Local Business &amp; Oil Mill Store Schema Defaults
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-bold text-gray-700">
+                            <div>
+                                <label className="block mb-1">Business / Mill Name</label>
+                                <input type="text" value={globalSettings.businessName || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, businessName: e.target.value })} placeholder="BlueAgle Organic Oil Mill" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block mb-1">Telephone / Phone Number</label>
+                                <input type="text" value={globalSettings.telephone || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, telephone: e.target.value })} placeholder="+91 98765 43210" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block mb-1">Street Address</label>
+                                <input type="text" value={globalSettings.streetAddress || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, streetAddress: e.target.value })} placeholder="123 Mill Road, Main Market" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block mb-1">City / Locality</label>
+                                <input type="text" value={globalSettings.addressLocality || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, addressLocality: e.target.value })} placeholder="Erode" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                            </div>
+                            <div>
+                                <label className="block mb-1">State / Region &amp; Postal Code</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input type="text" value={globalSettings.addressRegion || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, addressRegion: e.target.value })} placeholder="Tamil Nadu" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                    <input type="text" value={globalSettings.postalCode || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, postalCode: e.target.value })} placeholder="638001" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block mb-1">Opening Hours &amp; Price Range</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input type="text" value={globalSettings.openingHours || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, openingHours: e.target.value })} placeholder="Mo-Sa 09:00-19:00" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                    <input type="text" value={globalSettings.priceRange || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, priceRange: e.target.value })} placeholder="₹₹" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block mb-1">Geo Coordinates (Lat, Lng)</label>
+                                <div className="grid grid-cols-2 gap-2 font-mono">
+                                    <input type="text" value={globalSettings.latitude || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, latitude: e.target.value })} placeholder="11.3410" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                    <input type="text" value={globalSettings.longitude || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, longitude: e.target.value })} placeholder="77.7172" className="w-full bg-gray-50 border p-3 rounded-xl" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block mb-1">Google Business Profile URL</label>
+                                <input type="text" value={globalSettings.googleBusinessProfileUrl || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, googleBusinessProfileUrl: e.target.value })} placeholder="https://maps.google.com/..." className="w-full bg-gray-50 border p-3 rounded-xl font-mono" />
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block mb-1 text-xs font-bold text-gray-700">Custom Robots.txt Rules</label>
                         <textarea rows={6} value={globalSettings.robotsTxtCustomRules || ''} onChange={(e) => setGlobalSettings({ ...globalSettings, robotsTxtCustomRules: e.target.value })} className="w-full bg-gray-900 text-emerald-400 p-4 rounded-xl font-mono text-xs" />
@@ -887,6 +939,463 @@ const SeoManager = () => {
                         <div className="flex justify-end gap-2 pt-2">
                             <button onClick={() => setIsRegenModalOpen(false)} className="px-4 py-2 bg-gray-100 text-gray-600 font-bold rounded-xl text-xs">Cancel</button>
                             <button onClick={handleRunRegenerate} className="px-5 py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"><FaMagic /> Run Sync Engine</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CREATE / EDIT SEO RECORD MODAL */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 z-50 overflow-y-auto">
+                    <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-fade-in border border-slate-100">
+                        {/* Modal Header */}
+                        <div className="bg-gradient-to-r from-[#1b1b4b] via-[#2c1b64] to-[#3c006b] p-6 text-white flex justify-between items-start shrink-0 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="relative z-10 space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white/90 border border-white/10">
+                                        {formData.pageType || 'SEO Record'}
+                                    </span>
+                                    {editingId && (
+                                        <span className="text-[10px] font-mono text-purple-200 bg-purple-950/50 px-2 py-0.5 rounded border border-purple-400/20">
+                                            {formData.pageKey}
+                                        </span>
+                                    )}
+                                </div>
+                                <h3 className="font-black text-xl text-white tracking-tight flex items-center gap-2">
+                                    {editingId ? <FaEdit className="text-pink-400" /> : <FaPlus className="text-pink-400" />}
+                                    {editingId ? `Edit SEO: ${formData.pageName || formData.pageKey}` : 'Create New SEO Record'}
+                                </h3>
+                                <p className="text-xs text-white/70 font-mono font-medium">
+                                    {formData.route || '/'}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all relative z-10"
+                                title="Close Modal"
+                            >
+                                <FaTimes className="text-lg" />
+                            </button>
+                        </div>
+
+                        {/* Modal Navigation Tabs - Grid Layout (No Scrollbars or Arrows) */}
+                        <div className="p-4 bg-slate-50/80 border-b border-slate-100 shrink-0">
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 bg-slate-200/60 rounded-2xl text-xs font-bold">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorTab('BASIC')}
+                                    className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        editorTab === 'BASIC'
+                                            ? 'bg-[#3c006b] text-white shadow-md font-extrabold'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    }`}
+                                >
+                                    <FaGlobe className="text-xs" /> <span>Basic &amp; Meta</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorTab('SOCIAL')}
+                                    className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        editorTab === 'SOCIAL'
+                                            ? 'bg-[#3c006b] text-white shadow-md font-extrabold'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    }`}
+                                >
+                                    <FaSlidersH className="text-xs" /> <span>OpenGraph</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorTab('SCHEMA')}
+                                    className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        editorTab === 'SCHEMA'
+                                            ? 'bg-[#3c006b] text-white shadow-md font-extrabold'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    }`}
+                                >
+                                    <FaCode className="text-xs" /> <span>JSON-LD</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorTab('PREVIEW')}
+                                    className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        editorTab === 'PREVIEW'
+                                            ? 'bg-[#3c006b] text-white shadow-md font-extrabold'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    }`}
+                                >
+                                    <FaEye className="text-xs" /> <span>Live Preview</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setEditorTab('HISTORY')}
+                                    className={`py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                                        editorTab === 'HISTORY'
+                                            ? 'bg-[#3c006b] text-white shadow-md font-extrabold'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    }`}
+                                >
+                                    <FaHistory className="text-xs" /> <span>Audit Log</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Modal Body Form */}
+                        <form onSubmit={handleSaveRecord} className="flex-1 overflow-y-auto p-6 space-y-6">
+                            {/* TAB 1: BASIC & META */}
+                            {editorTab === 'BASIC' && (
+                                <div className="space-y-5 text-xs font-semibold text-slate-700">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">
+                                                Page Key <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                disabled={!!editingId}
+                                                value={formData.pageKey}
+                                                onChange={(e) => setFormData({ ...formData, pageKey: e.target.value })}
+                                                placeholder="e.g. home, product_12, category_5"
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 font-mono text-xs text-slate-800 transition-all focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 cursor-not-allowed"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">
+                                                Page Name <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.pageName}
+                                                onChange={(e) => setFormData({ ...formData, pageName: e.target.value })}
+                                                placeholder="e.g. Home Page, Wood Pressed Oils"
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">
+                                                Route Path <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.route}
+                                                onChange={(e) => setFormData({ ...formData, route: e.target.value })}
+                                                placeholder="e.g. /, /products?category=5, /product/12"
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 font-mono text-xs text-slate-800 transition-all focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">
+                                                Page Type
+                                            </label>
+                                            <select
+                                                value={formData.pageType}
+                                                onChange={(e) => setFormData({ ...formData, pageType: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 uppercase font-bold text-xs text-slate-800 transition-all focus:outline-none"
+                                            >
+                                                {PAGE_TYPES.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <label className="font-extrabold text-slate-900">SEO Meta Title</label>
+                                            <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                                                titleLength > 60 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                                            }`}>
+                                                {titleLength} / 60 characters
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={formData.title || ''}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            placeholder="Target SEO Page Title (appears in Google search results & browser tab)"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none font-medium"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <label className="font-extrabold text-slate-900">Meta Description</label>
+                                            <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                                                descLength > 160 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                                            }`}>
+                                                {descLength} / 160 characters
+                                            </span>
+                                        </div>
+                                        <textarea
+                                            rows={3}
+                                            value={formData.metaDescription || ''}
+                                            onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                                            placeholder="Summary snippet shown in Google search result snippets (150-160 characters recommended)."
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none font-medium leading-relaxed"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-1.5 font-extrabold text-slate-900">Meta Keywords</label>
+                                        <input
+                                            type="text"
+                                            value={formData.metaKeywords || ''}
+                                            onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
+                                            placeholder="Comma separated keywords e.g. cold pressed oil, organic grocery, pure ghee"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">Canonical URL</label>
+                                            <input
+                                                type="text"
+                                                value={formData.canonicalUrl || ''}
+                                                onChange={(e) => setFormData({ ...formData, canonicalUrl: e.target.value })}
+                                                placeholder="e.g. https://blueagle.in/product/12 (Leave blank for default)"
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 font-mono text-xs text-slate-800 transition-all focus:outline-none"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">Robots Meta Directive</label>
+                                            <select
+                                                value={formData.robots || 'index, follow'}
+                                                onChange={(e) => setFormData({ ...formData, robots: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 font-mono text-xs text-slate-800 transition-all focus:outline-none"
+                                            >
+                                                <option value="index, follow">index, follow (Standard Public)</option>
+                                                <option value="noindex, follow">noindex, follow (Hide page, follow links)</option>
+                                                <option value="noindex, nofollow">noindex, nofollow (Private/Admin)</option>
+                                                <option value="index, nofollow">index, nofollow</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-8 pt-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <label className="flex items-center gap-2.5 cursor-pointer font-bold text-slate-800">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isIndexed}
+                                                onChange={(e) => setFormData({ ...formData, isIndexed: e.target.checked })}
+                                                className="w-4 h-4 rounded accent-[#3c006b]"
+                                            />
+                                            <span>Include in XML Sitemap</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2.5 cursor-pointer font-bold text-slate-800">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.isActive}
+                                                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                                className="w-4 h-4 rounded accent-[#3c006b]"
+                                            />
+                                            <span>Active Rule</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 2: OPENGRAPH & SOCIAL */}
+                            {editorTab === 'SOCIAL' && (
+                                <div className="space-y-5 text-xs font-semibold text-slate-700">
+                                    <div className="bg-indigo-50/80 p-4 rounded-2xl border border-indigo-100 text-indigo-950">
+                                        <div className="font-extrabold text-sm mb-0.5 flex items-center gap-2">
+                                            <FaSlidersH className="text-indigo-600" /> Open Graph &amp; Twitter Social Previews
+                                        </div>
+                                        <div className="text-[11px] text-indigo-700 font-medium">
+                                            Customize rich preview snippets for WhatsApp, Facebook, Twitter, and iMessage share cards.
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-1.5 font-extrabold text-slate-900">Open Graph Title (og:title)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.ogTitle || ''}
+                                            onChange={(e) => setFormData({ ...formData, ogTitle: e.target.value })}
+                                            placeholder={formData.title || 'Title when shared on social media'}
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-1.5 font-extrabold text-slate-900">Open Graph Description (og:description)</label>
+                                        <textarea
+                                            rows={2}
+                                            value={formData.ogDescription || ''}
+                                            onChange={(e) => setFormData({ ...formData, ogDescription: e.target.value })}
+                                            placeholder={formData.metaDescription || 'Description when shared on WhatsApp or Facebook'}
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-1.5 font-extrabold text-slate-900">Open Graph Image URL (og:image)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.ogImage || ''}
+                                            onChange={(e) => setFormData({ ...formData, ogImage: e.target.value })}
+                                            placeholder="Image URL e.g. /uploads/product.jpg or https://..."
+                                            className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs font-mono text-slate-800 transition-all focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">Twitter Card Type</label>
+                                            <select
+                                                value={formData.twitterCard || 'summary_large_image'}
+                                                onChange={(e) => setFormData({ ...formData, twitterCard: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none font-bold"
+                                            >
+                                                <option value="summary_large_image">summary_large_image (Large Hero Card)</option>
+                                                <option value="summary">summary (Small Square Thumbnail)</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1.5 font-extrabold text-slate-900">Open Graph Object Type</label>
+                                            <select
+                                                value={formData.ogType || 'website'}
+                                                onChange={(e) => setFormData({ ...formData, ogType: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#3c006b] focus:ring-4 focus:ring-[#3c006b]/10 rounded-xl p-3 text-xs text-slate-800 transition-all focus:outline-none font-bold"
+                                            >
+                                                <option value="website">website</option>
+                                                <option value="product">product (Product Detail Page)</option>
+                                                <option value="article">article (Blog / Policy Page)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 3: STRUCTURED DATA (JSON-LD) */}
+                            {editorTab === 'SCHEMA' && (
+                                <div className="space-y-4 text-xs font-semibold text-slate-700">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <div className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                                                <FaCode className="text-emerald-600" /> Structured Data Schema (JSON-LD)
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 font-medium">Inject Schema.org JSON-LD scripts directly into Google search crawlers.</div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5">
+                                            {Object.keys(SCHEMA_TEMPLATES).map(tplName => (
+                                                <button
+                                                    key={tplName}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, structuredData: SCHEMA_TEMPLATES[tplName] })}
+                                                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-[10px] font-bold transition-all border border-slate-200"
+                                                >
+                                                    + {tplName} Template
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <textarea
+                                        rows={12}
+                                        value={formData.structuredData || ''}
+                                        onChange={(e) => setFormData({ ...formData, structuredData: e.target.value })}
+                                        placeholder='{"@context": "https://schema.org", "@type": "Product", ...}'
+                                        className="w-full bg-slate-950 text-emerald-400 font-mono p-4 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed border border-slate-800"
+                                    />
+                                </div>
+                            )}
+
+                            {/* TAB 4: LIVE PREVIEW */}
+                            {editorTab === 'PREVIEW' && (
+                                <div className="space-y-6">
+                                    {/* Google SERP Preview */}
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                                        <div className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                            <FaGlobe className="text-blue-600" /> Google Search Engine Result Preview
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl font-sans border border-slate-100">
+                                            <div className="text-[11px] text-slate-600 truncate font-mono">{currentOrigin}{formData.route || '/'}</div>
+                                            <div className="text-base text-blue-700 font-medium hover:underline cursor-pointer truncate mt-0.5">
+                                                {formData.title || formData.pageName || 'Page Title'}
+                                            </div>
+                                            <div className="text-xs text-slate-600 line-clamp-2 mt-1 font-normal leading-relaxed">
+                                                {formData.metaDescription || 'No meta description provided. Google will auto-extract text snippet from page body.'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* WhatsApp / Social Card Preview */}
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                                        <div className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                            <FaSlidersH className="text-emerald-600" /> WhatsApp &amp; Social Share Preview
+                                        </div>
+                                        <div className="max-w-sm border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-slate-50">
+                                            {formData.ogImage ? (
+                                                <img src={formData.ogImage} alt="Social Preview" className="w-full h-44 object-cover" />
+                                            ) : (
+                                                <div className="w-full h-36 bg-slate-200 flex items-center justify-center text-slate-400 text-xs font-bold">No Preview Image</div>
+                                            )}
+                                            <div className="p-3 bg-white space-y-1">
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase">{currentOrigin.replace('https://', '').replace('http://', '')}</div>
+                                                <div className="text-xs font-bold text-slate-900 truncate">{formData.ogTitle || formData.title || formData.pageName}</div>
+                                                <div className="text-[11px] text-slate-500 line-clamp-2">{formData.ogDescription || formData.metaDescription}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 5: HISTORY & AUDIT LOGS */}
+                            {editorTab === 'HISTORY' && (
+                                <div className="space-y-3">
+                                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Audit Log History for {formData.pageKey}</div>
+                                    {auditLogs.length === 0 ? (
+                                        <div className="p-8 text-center text-slate-400 font-bold text-xs bg-slate-50 rounded-2xl border border-slate-100">No history logs recorded yet for this record.</div>
+                                    ) : (
+                                        <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden text-xs">
+                                            {auditLogs.map((log) => (
+                                                <div key={log.id} className="p-3 flex justify-between items-center bg-white hover:bg-slate-50">
+                                                    <div>
+                                                        <span className="font-extrabold text-slate-900">{log.action}</span>
+                                                        <span className="text-slate-400 ml-2">by {log.performedBy || 'admin'}</span>
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-400 font-mono">{new Date(log.createdAt).toLocaleString()}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </form>
+
+                        {/* Sticky Modal Footer */}
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200/70 text-xs transition-all"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleSaveRecord}
+                                className="px-6 py-2.5 rounded-xl font-extrabold bg-gradient-to-r from-[#3c006b] to-[#5a00a3] hover:from-[#310057] hover:to-[#490085] text-white shadow-lg shadow-purple-950/20 text-xs transition-all flex items-center gap-2"
+                            >
+                                <FaCheck /> {editingId ? 'Save SEO Changes' : 'Create SEO Record'}
+                            </button>
                         </div>
                     </div>
                 </div>

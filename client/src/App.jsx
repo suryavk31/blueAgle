@@ -1,11 +1,12 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { SeoProvider } from './context/SeoContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
+import { CategoryProvider } from './context/CategoryContext';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -20,6 +21,9 @@ import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
 import PolicyPage from './pages/PolicyPage';
 import AccountDeletePage from './pages/AccountDeletePage';
+import BlogList from './pages/BlogList';
+import BlogDetail from './pages/BlogDetail';
+import BlogManager from './pages/admin/BlogManager';
 
 // Admin Pages (existing)
 import Dashboard from './pages/admin/Dashboard';
@@ -32,6 +36,11 @@ import Coupons from './pages/admin/Coupons';
 import Policies from './pages/admin/Policies';
 import Ads from './pages/admin/Ads';
 import SeoManager from './pages/admin/SeoManager';
+import DeliverySettings from './pages/admin/DeliverySettings';
+import GaSettings from './pages/admin/GaSettings';
+import GoogleAnalyticsDashboard from './pages/admin/GoogleAnalyticsDashboard';
+import { initGA, trackPageView } from './utils/gaTracker';
+import { useLocation } from 'react-router-dom';
 
 // Admin Auth Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -56,15 +65,47 @@ import InvoiceCategories from './pages/admin/invoice/InvoiceCategories';
 
 // RBAC Components
 import ProtectedAdminRoute from './components/rbac/ProtectedAdminRoute';
+import ScrollToTop from './components/ScrollToTop';
+
+const GaRouteTracker = () => {
+    const location = useLocation();
+
+    React.useEffect(() => {
+        const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+        if (measurementId) {
+            initGA(measurementId);
+        } else {
+            fetch('/api/analytics/ga4/config')
+                .then(res => res.json())
+                .then(data => {
+                    if (data?.measurementId) {
+                        initGA(data.measurementId);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (!location.pathname.startsWith('/admin')) {
+            trackPageView(location.pathname + location.search);
+        }
+    }, [location]);
+
+    return null;
+};
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
+      <GaRouteTracker />
       <SeoProvider>
         <AuthProvider>
           <CartProvider>
-            <AdminAuthProvider>
-              <ToastContainer position="top-right" autoClose={2000} />
+            <CategoryProvider>
+              <AdminAuthProvider>
+                <ToastContainer position="top-right" autoClose={2000} />
               <Routes>
                 {/* ── Customer Routes ─────────────────────────────── */}
                 <Route path="/" element={<MainLayout />}>
@@ -75,6 +116,8 @@ function App() {
                   <Route path="profile" element={<Profile />} />
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="account/delete" element={<AccountDeletePage />} />
+                  <Route path="blog" element={<BlogList />} />
+                  <Route path="blog/:slug" element={<BlogDetail />} />
                   <Route path="policy/:type" element={<PolicyPage />} />
                   <Route path="policies/:type" element={<PolicyPage />} />
                   <Route path="policies/account-deletion" element={<PolicyPage />} />
@@ -123,6 +166,11 @@ function App() {
                       <SeoManager />
                     </ProtectedAdminRoute>
                   } />
+                  <Route path="blogs" element={
+                    <ProtectedAdminRoute requiredModule="SEO">
+                      <BlogManager />
+                    </ProtectedAdminRoute>
+                  } />
                   <Route path="policies" element={
                     <ProtectedAdminRoute requiredModule="Policies">
                       <Policies />
@@ -141,6 +189,21 @@ function App() {
                   <Route path="ads" element={
                     <ProtectedAdminRoute requiredModule="Ads">
                       <Ads />
+                    </ProtectedAdminRoute>
+                  } />
+                  <Route path="delivery-settings" element={
+                    <ProtectedAdminRoute requiredModule="Dashboard">
+                      <DeliverySettings />
+                    </ProtectedAdminRoute>
+                  } />
+                  <Route path="analytics/google" element={
+                    <ProtectedAdminRoute requiredModule="Reports">
+                      <GoogleAnalyticsDashboard />
+                    </ProtectedAdminRoute>
+                  } />
+                  <Route path="settings/google-analytics" element={
+                    <ProtectedAdminRoute requiredModule="Settings">
+                      <GaSettings />
                     </ProtectedAdminRoute>
                   } />
 
@@ -205,15 +268,16 @@ function App() {
                     <div className="text-8xl font-black text-[#3c006b] mb-4">404</div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-2">Page Not Found</h1>
                     <p className="text-gray-500 mb-6">The page you are looking for does not exist or has been moved.</p>
-                    <a href="/" className="bg-[#ff3269] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#e62e5c] transition-colors">
+                    <Link to="/" className="bg-[#ff3269] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#e62e5c] transition-colors">
                       Return to Home
-                    </a>
+                    </Link>
                   </div>
                 } />
               </Routes>
             </AdminAuthProvider>
-          </CartProvider>
-        </AuthProvider>
+          </CategoryProvider>
+        </CartProvider>
+      </AuthProvider>
       </SeoProvider>
     </BrowserRouter>
   );

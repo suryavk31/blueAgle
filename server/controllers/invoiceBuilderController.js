@@ -421,87 +421,435 @@ exports.updateInvoiceSettings = async (req, res) => {
 
 // ─── Order Render & Variable Compiler Engine ───────────────────────────────────
 
+const compileInvoiceData = async (orderId, requestedBy = 'System') => {
+    const { Invoice } = require('../models');
+
+    const order = await Order.findByPk(orderId, {
+        include: [
+            { model: OrderItem, include: [Product] },
+            { model: User, attributes: ['id', 'name', 'phone', 'email'] },
+        ],
+    });
+
+    if (!order) return null;
+
+    // Load company settings
+    let settings = await InvoiceSetting.findOne();
+    if (!settings) {
+        settings = {
+            companyName: 'BlueAgle Commerce Pvt Ltd',
+            gstNumber: '29ABCDE1234F1ZH',
+            address: '4th Floor, Tech Park Tower, Koramangala, Bengaluru 560095',
+            phone: '+91 1800-123-4567',
+            email: 'billing@blueeagle.com',
+            website: 'https://blueeagle.com',
+            currencySymbol: '₹',
+            footerNotes: 'Thank you for shopping with BlueAgle!',
+        };
+    }
+
+    // Load template priority: 1. Order assigned 2. Default Active 3. Any Active
+    let template = null;
+    if (order.invoiceTemplateId) {
+        template = await InvoiceTemplate.findOne({ where: { id: order.invoiceTemplateId, isActive: true } });
+    }
+    if (!template) {
+        template = await InvoiceTemplate.findOne({ where: { documentType: 'Invoice', isDefault: true, isActive: true } });
+    }
+    if (!template) {
+        template = await InvoiceTemplate.findOne({ where: { isDefault: true, isActive: true } });
+    }
+    if (!template) {
+        template = await InvoiceTemplate.findOne({ where: { isActive: true } });
+    }
+
+    if (!template) {
+        return { error: 'No published invoice template is configured. Please publish a template from the Invoice Template Generator.', statusCode: 400 };
+    }
+
+    const currency = settings.currencySymbol || '₹';
+
+    // Find or create immutable Invoice record
+    let invoiceRecord = await Invoice.findOne({ where: { orderId } });
+    const orderDeliveryCharge = order.deliveryCharge !== undefined && order.deliveryCharge !== null ? parseFloat(order.deliveryCharge) : 0.00;
+    const orderDiscount = order.discountAmount !== undefined && order.discountAmount !== null ? parseFloat(order.discountAmount) : 0.00;
+
+    if (!invoiceRecord) {
+        const invNum = `INV-${new Date().getFullYear()}-${orderId.toString().padStart(6, '0')}`;
+        const subtotalVal = order.subtotal ? parseFloat(order.subtotal) : (order.OrderItems || []).reduce((sum, it) => sum + parseFloat(it.price) * it.quantity, 0);
+
+        invoiceRecord = await Invoice.create({
+            orderId,
+            invoiceNumber: invNum,
+            templateId: template.id,
+            templateVersion: template.version || 1,
+            status: 'Generated',
+            invoiceDate: order.createdAt || new Date(),
+            dueDate: new Date(new Date(order.createdAt || Date.now()).getTime() + 7 * 86400000),
+            subtotal: subtotalVal,
+            discountAmount: orderDiscount,
+            taxAmount: 0.00,
+            shippingAmount: orderDeliveryCharge,
+            totalAmount: parseFloat(order.totalAmount),
+            currencySymbol: currency,
+            generatedBy: requestedBy,
+        });
+    }
+
+    // Customer Name & Contact
+    const custName = order.address?.contactName || order.address?.name || order.User?.name || 'Valued Customer';
+    const custPhone = order.address?.contactPhone || order.User?.phone || 'N/A';
+    const custEmail = order.User?.email || (typeof order.address === 'object' ? order.address?.email : null) || 'N/A';
+
+    let custAddress = 'N/A';
+    if (typeof order.address === 'object' && order.address) {
+        const parts = [
+            order.address.label ? `[${order.address.label}]` : null,
+            order.address.flatNo,
+            order.address.floor,
+            order.address.area,
+            order.address.landmark,
+            order.address.city,
+            order.address.pincode
+        ].filter(Boolean);
+        custAddress = parts.join(', ');
+    } else if (typeof order.address === 'string') {
+        custAddress = order.address;
+    }
+
+    const items = (order.OrderItems || []).map(item => {
+        const pPrice = parseFloat(item.price);
+        const pQty = item.quantity;
+        return {
+            productName: item.Product?.name || `Product #${item.productId || 'Item'}`,
+            sku: item.Product?.sku || (item.productId ? `SKU-${item.productId}` : 'SKU-N/A'),
+            brand: item.Product?.brand || 'BlueAgle',
+            weight: item.Product?.weight || '',
+            description: item.Product?.description || '',
+            quantity: pQty,
+            price: `${currency}${pPrice.toFixed(2)}`,
+            amount: `${currency}${(pPrice * pQty).toFixed(2)}`,
+            rawPrice: pPrice,
+            rawAmount: pPrice * pQty,
+            currency,
+        };
+    });
+
+    const subtotalCalc = items.reduce((acc, i) => acc + i.rawAmount, 0);
+    const formattedShipping = orderDeliveryCharge > 0 ? `${currency}${orderDeliveryCharge.toFixed(2)}` : 'FREE';
+
+    const variablePayload = {
+        'company.name': settings.companyName || 'BlueAgle Commerce Pvt Ltd',
+        'company.logo': settings.companyLogo || '',
+        'company.gstNumber': settings.gstNumber || 'N/A',
+        'company.vatNumber': settings.vatNumber || 'N/A',
+        'company.address': settings.address || '',
+        'company.phone': settings.phone || '',
+        'company.email': settings.email || '',
+        'company.website': settings.website || '',
+        'company.signature': settings.digitalSignature || '',
+        'company.stamp': settings.companyStamp || '',
+        'customer.name': custName,
+        'customer.phone': custPhone,
+        'customer.email': custEmail,
+        'customer.address': custAddress,
+        'invoice.number': invoiceRecord.invoiceNumber,
+        'invoice.date': new Date(invoiceRecord.invoiceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        'invoice.dueDate': invoiceRecord.dueDate ? new Date(invoiceRecord.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A',
+        'invoice.subtotal': `${currency}${subtotalCalc.toFixed(2)}`,
+        'invoice.discount': `${currency}${orderDiscount.toFixed(2)}`,
+        'invoice.shipping': formattedShipping,
+        'invoice.deliveryCharge': formattedShipping,
+        'invoice.tax': `${currency}0.00`,
+        'invoice.total': `${currency}${parseFloat(order.totalAmount).toFixed(2)}`,
+        'invoice.paymentMethod': order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online Payment',
+        'invoice.status': order.paymentStatus || 'Paid',
+        'invoice.footerNotes': settings.footerNotes || 'Thank you for shopping with BlueAgle!',
+        'order.id': `#${order.id.toString().padStart(5, '0')}`,
+        'order.number': `#${order.id.toString().padStart(5, '0')}`,
+        'order.date': new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        'order.status': order.status || 'Processing',
+        'order.shipping': formattedShipping,
+        'order.deliveryCharge': formattedShipping,
+        'order.items': items,
+    };
+
+    return {
+        invoiceRecord,
+        order,
+        items,
+        settings,
+        template: template ? template.toJSON() : null,
+        variables: variablePayload,
+        custName,
+        custPhone,
+        custEmail,
+        custAddress,
+        currency,
+        subtotalCalc,
+    };
+};
+
+function replaceVariablesInText(text, payload) {
+    if (!text) return '';
+    return text.replace(/\{\{([^}]+)\}\}/g, (match, varKey) => {
+        const key = varKey.trim();
+        if (payload[key] !== undefined && payload[key] !== null) {
+            return payload[key];
+        }
+        return '';
+    });
+}
+
+function renderCanvasTemplateToHtml(data) {
+    const { template, variables, items, order, invoiceRecord } = data;
+    const canvasJson = template?.canvasJson || {};
+    const elements = canvasJson.elements || [];
+    const paperSize = canvasJson.paperSize || template?.paperSize || 'A4';
+    const orientation = canvasJson.orientation || template?.orientation || 'Portrait';
+
+    const canvasWidth = orientation === 'Landscape' ? 1123 : 794;
+    const canvasHeight = orientation === 'Landscape' ? 794 : 1123;
+
+    const renderedElementsHtml = elements.map(el => {
+        if (el.hidden) return '';
+
+        const x = el.x || 0;
+        const y = el.y || 0;
+        const w = el.w || 100;
+        const h = el.h || 30;
+        const fontSize = el.fontSize || 12;
+        const fontWeight = el.fontWeight || 'normal';
+        const color = el.color || '#1e293b';
+        const backgroundColor = el.backgroundColor || 'transparent';
+        const borderColor = el.borderColor || 'transparent';
+        const borderWidth = el.borderWidth ? `${el.borderWidth}px` : '0px';
+        const borderStyle = el.borderWidth ? 'solid' : 'none';
+        const borderRadius = el.borderRadius ? `${el.borderRadius}px` : '0px';
+        const textAlign = el.textAlign || 'left';
+
+        const styleStr = [
+            `position: absolute;`,
+            `left: ${x}px;`,
+            `top: ${y}px;`,
+            `width: ${w}px;`,
+            `min-height: ${h}px;`,
+            `font-size: ${fontSize}px;`,
+            `font-weight: ${fontWeight};`,
+            `color: ${color};`,
+            `background-color: ${backgroundColor};`,
+            `border-color: ${borderColor};`,
+            `border-width: ${borderWidth};`,
+            `border-style: ${borderStyle};`,
+            `border-radius: ${borderRadius};`,
+            `text-align: ${textAlign};`,
+            `white-space: pre-wrap;`,
+            `word-break: break-word;`,
+            `box-sizing: border-box;`,
+            `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;`,
+            `overflow: hidden;`
+        ].join(' ');
+
+        if (el.type === 'box') {
+            return `<div style="${styleStr}; height: ${h}px;"></div>`;
+        }
+
+        if (el.type === 'divider') {
+            const divH = el.h || 2;
+            const divColor = el.color || '#e2e8f0';
+            return `<div style="position: absolute; left: ${x}px; top: ${y}px; width: ${w}px; height: ${divH}px; background-color: ${divColor};"></div>`;
+        }
+
+        if (el.type === 'image' || el.type === 'logo') {
+            const imgUrl = el.url || variables['company.logo'] || '';
+            if (imgUrl) {
+                return `<div style="${styleStr}; height: ${h}px; padding: 2px;">
+                    <img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo" />
+                </div>`;
+            }
+            const fallbackText = replaceVariablesInText(el.text || '{{company.name}}', variables);
+            return `<div style="${styleStr}; font-weight: bold; font-size: 18px; color: #3c006b;">${fallbackText}</div>`;
+        }
+
+        if (el.type === 'signature') {
+            const labelText = replaceVariablesInText(el.label || el.text || 'Authorized Signatory', variables);
+            return `<div style="${styleStr}; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 6px;">
+                ${el.url ? `<img src="${el.url}" style="max-height: 40px; margin-bottom: 4px; object-fit: contain;" alt="Signature" /><br/>` : ''}
+                <span style="font-size: 11px; font-weight: 600; color: #475569;">${labelText}</span>
+            </div>`;
+        }
+
+        if (el.type === 'dynamic_table') {
+            const cols = el.columns || ['Product', 'SKU', 'Qty', 'Unit Price', 'Amount'];
+
+            const thHtml = cols.map(c => `
+                <th style="padding: 8px 10px; background: #f1f5f9; color: #334155; font-size: 10px; font-weight: 800; text-transform: uppercase; border: 1px solid #cbd5e1;">${c}</th>
+            `).join('');
+
+            const rowsHtml = items.map((it, idx) => {
+                const tds = cols.map(c => {
+                    const cLower = c.toLowerCase();
+                    let val = '';
+                    let align = 'left';
+
+                    if (cLower.includes('sl') || cLower === '#' || cLower.includes('no')) {
+                        val = idx + 1;
+                        align = 'center';
+                    } else if (cLower.includes('product') || cLower.includes('description') || cLower.includes('item')) {
+                        val = `<strong>${it.productName}</strong>${it.weight ? ` <span style="color:#64748b; font-weight:normal;">(${it.weight})</span>` : ''}`;
+                        align = 'left';
+                    } else if (cLower.includes('sku')) {
+                        val = `<span style="font-family: monospace;">${it.sku}</span>`;
+                        align = 'left';
+                    } else if (cLower.includes('qty') || cLower.includes('quantity')) {
+                        val = it.quantity;
+                        align = 'center';
+                    } else if (cLower.includes('unit price') || cLower.includes('rate') || cLower.includes('price')) {
+                        val = it.price;
+                        align = 'right';
+                    } else if (cLower.includes('net') || cLower.includes('tax amount')) {
+                        const taxVal = (it.rawPrice * it.quantity * 0.18).toFixed(2);
+                        val = `${it.currency || '₹'}${taxVal}`;
+                        align = 'right';
+                    } else if (cLower.includes('amount') || cLower.includes('total')) {
+                        val = it.amount;
+                        align = 'right';
+                    } else {
+                        val = it[c] || '-';
+                    }
+
+                    return `<td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-size: 11px; text-align: ${align};">${val}</td>`;
+                }).join('');
+
+                return `<tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">${tds}</tr>`;
+            }).join('');
+
+            return `<div style="${styleStr}; height: auto; min-height: ${h}px;">
+                <table style="width: 100%; border-collapse: collapse; margin: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <thead><tr>${thHtml}</tr></thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>`;
+        }
+
+        // Default text / header / footer
+        const renderedText = replaceVariablesInText(el.text || '', variables);
+        return `<div style="${styleStr}">${renderedText}</div>`;
+    }).join('\n');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - ${variables['invoice.number'] || invoiceRecord?.invoiceNumber || order?.id || 'Doc'}</title>
+    <style>
+        @page { size: A4 ${orientation.toLowerCase()}; margin: 0; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; background: #0f172a; color: #1e293b; display: flex; flex-direction: column; align-items: center; }
+        .action-bar { width: ${canvasWidth}px; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center; color: #f8fafc; font-size: 13px; font-weight: 600; }
+        .btn-print { background: #6366f1; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .btn-print:hover { background: #4f46e5; }
+        .canvas-container { width: ${canvasWidth}px; min-height: ${canvasHeight}px; position: relative; background: #ffffff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow: hidden; border-radius: 4px; }
+        @media print {
+            body { background: #ffffff; padding: 0; display: block; }
+            .action-bar { display: none !important; }
+            .canvas-container { box-shadow: none; border-radius: 0; width: 100% !important; min-height: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="action-bar">
+        <div>📄 Template: <strong>${template.name}</strong> (v${template.version || 1}.0)</div>
+        <button onclick="window.print()" class="btn-print">🖨️ Print / Download PDF</button>
+    </div>
+
+    <div class="canvas-container">
+        ${renderedElementsHtml}
+    </div>
+</body>
+</html>`;
+}
+
 exports.renderOrderInvoice = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { documentType = 'Invoice' } = req.query;
+        const { format } = req.query;
 
-        const order = await Order.findByPk(orderId, {
-            include: [
-                { model: OrderItem, include: [Product] },
-                { model: User, attributes: ['id', 'name', 'phone', 'email'] },
-            ],
-        });
-
-        if (!order) return res.status(404).json({ message: 'Order not found' });
-
-        // Load company settings
-        let settings = await InvoiceSetting.findOne();
-        if (!settings) settings = {};
-
-        // Load default template for documentType
-        let template = await InvoiceTemplate.findOne({
-            where: { documentType, isDefault: true, isActive: true },
-        });
-
-        if (!template) {
-            // Fallback to any template for documentType or first available template
-            template = await InvoiceTemplate.findOne({
-                where: { documentType, isActive: true },
-            });
+        const data = await compileInvoiceData(orderId, 'Admin/Customer');
+        if (data && data.error) {
+            return res.status(data.statusCode || 400).json({ message: data.error });
         }
+        if (!data) return res.status(404).json({ message: 'Order not found' });
 
-        if (!template) {
-            template = await InvoiceTemplate.findOne({ where: { isActive: true } });
+        if (format === 'html' || req.headers.accept?.includes('text/html')) {
+            const htmlContent = renderCanvasTemplateToHtml(data);
+            res.setHeader('Content-Type', 'text/html');
+            return res.send(htmlContent);
         }
-
-        const items = (order.OrderItems || []).map(item => ({
-            productName: item.Product?.name || 'Product Item',
-            sku: item.Product?.id ? `SKU-${item.Product.id}` : 'SKU-N/A',
-            description: item.Product?.description || '',
-            quantity: item.quantity,
-            price: `${settings.currencySymbol || '₹'}${parseFloat(item.price).toFixed(2)}`,
-            amount: `${settings.currencySymbol || '₹'}${(parseFloat(item.price) * item.quantity).toFixed(2)}`,
-        }));
-
-        const customerAddress = typeof order.address === 'object'
-            ? `${order.address.flatNo || ''}, ${order.address.area || ''}, ${order.address.landmark || ''}`
-            : (order.address || 'N/A');
-
-        const variablePayload = {
-            'company.name': settings.companyName || 'BlueAgle',
-            'company.logo': settings.companyLogo || '',
-            'company.gstNumber': settings.gstNumber || 'N/A',
-            'company.address': settings.address || '',
-            'company.phone': settings.phone || '',
-            'company.email': settings.email || '',
-            'company.website': settings.website || '',
-            'company.signature': settings.digitalSignature || '',
-            'company.stamp': settings.companyStamp || '',
-            'customer.name': order.User?.name || order.address?.contactName || 'Valued Customer',
-            'customer.phone': order.User?.phone || order.address?.contactPhone || 'N/A',
-            'customer.email': order.User?.email || 'N/A',
-            'customer.address': customerAddress,
-            'invoice.number': `INV-${order.id.toString().padStart(6, '0')}`,
-            'invoice.date': new Date(order.createdAt).toLocaleDateString(),
-            'invoice.dueDate': new Date(Date.now() + 7 * 86400000).toLocaleDateString(),
-            'invoice.subtotal': `${settings.currencySymbol || '₹'}${parseFloat(order.totalAmount).toFixed(2)}`,
-            'invoice.total': `${settings.currencySymbol || '₹'}${parseFloat(order.totalAmount).toFixed(2)}`,
-            'invoice.paymentMethod': order.paymentMethod || 'Online',
-            'invoice.status': order.paymentStatus || 'Paid',
-            'invoice.footerNotes': settings.footerNotes || 'Thank you for shopping with BlueAgle!',
-            'order.id': `#${order.id}`,
-            'order.items': items,
-        };
 
         return res.json({
-            template: template ? template.toJSON() : null,
-            variables: variablePayload,
-            settings,
-            order,
+            invoiceNumber: data.invoiceRecord.invoiceNumber,
+            status: data.invoiceRecord.status,
+            template: data.template,
+            variables: data.variables,
+            settings: data.settings,
+            order: data.order,
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error rendering invoice' });
+        console.error('Error rendering invoice:', err);
+        res.status(500).json({ message: 'Server error rendering order invoice' });
+    }
+};
+
+exports.generateOrderInvoice = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const requestedBy = req.adminUser ? `Admin:${req.adminUser.id}` : 'Customer';
+
+        const data = await compileInvoiceData(orderId, requestedBy);
+        if (data && data.error) {
+            return res.status(data.statusCode || 400).json({ message: data.error });
+        }
+        if (!data) return res.status(404).json({ message: 'Order not found' });
+
+        return res.json({
+            message: 'Invoice generated successfully',
+            invoiceNumber: data.invoiceRecord.invoiceNumber,
+            invoiceId: data.invoiceRecord.id,
+            templateId: data.template.id,
+            templateName: data.template.name,
+            templateVersion: data.template.version,
+            status: data.invoiceRecord.status,
+            invoiceDate: data.invoiceRecord.invoiceDate,
+            totalAmount: data.invoiceRecord.totalAmount,
+            downloadUrl: `/api/invoice/order/${orderId}/download`,
+            previewUrl: `/api/invoice/order/${orderId}/render?format=html`,
+        });
+    } catch (err) {
+        console.error('Error generating invoice:', err);
+        res.status(500).json({ message: 'Failed to generate invoice' });
+    }
+};
+
+exports.downloadOrderInvoiceHtml = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+
+        const data = await compileInvoiceData(orderId, 'Download');
+        if (data && data.error) {
+            return res.status(data.statusCode || 400).json({ message: data.error });
+        }
+        if (!data) return res.status(404).json({ message: 'Order not found' });
+
+        const htmlContent = renderCanvasTemplateToHtml(data);
+        const fileName = `Invoice-${data.invoiceRecord.invoiceNumber}.html`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+        return res.send(htmlContent);
+    } catch (err) {
+        console.error('Error downloading invoice:', err);
+        res.status(500).json({ message: 'Failed to download invoice' });
     }
 };

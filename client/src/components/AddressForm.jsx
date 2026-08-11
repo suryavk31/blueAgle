@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { FaTimes, FaHome, FaBriefcase, FaHotel, FaEllipsisH, FaCheck } from 'react-icons/fa';
@@ -75,10 +75,12 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
         setFloor('');
         setArea('');
         setLandmark('');
-        setContactName('');
-        setContactPhone('');
+        setContactName(currentUser?.displayName || '');
+        setContactPhone(currentUser?.phoneNumber || '');
         setErrors({});
     };
+
+    const isFormView = view === 'FORM';
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center md:justify-end">
@@ -88,7 +90,7 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
                     <h3 className="font-bold text-lg text-gray-800">
-                        {showForm ? 'Enter Complete Address' : 'Select Address'}
+                        {isFormView ? 'Enter Complete Address' : 'Select Address'}
                     </h3>
                     <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500">
                         <FaTimes />
@@ -96,7 +98,7 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                    {showForm ? (
+                    {isFormView ? (
                         /* Address Form */
                         <div className="p-5 space-y-5">
                             {/* Label Selector */}
@@ -109,6 +111,7 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                                         return (
                                             <button
                                                 key={l.value}
+                                                type="button"
                                                 onClick={() => setLabel(l.value)}
                                                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold border transition-all ${active ? l.color + ' ring-2 ring-offset-1 ring-blue-400' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
                                             >
@@ -219,6 +222,7 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                                         <p className="text-xs text-gray-500 mt-1">{addr.contactName}{addr.contactPhone ? ` • ${addr.contactPhone}` : ''}</p>
                                     </div>
                                     <button
+                                        type="button"
                                         onClick={(e) => { e.stopPropagation(); handleDelete(addr.id); }}
                                         className="text-red-400 hover:text-red-600 text-xs p-1"
                                     >
@@ -228,7 +232,8 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                             ))}
 
                             <button
-                                onClick={() => { resetForm(); setShowForm(true); }}
+                                type="button"
+                                onClick={() => { resetForm(); setView('FORM'); }}
                                 className="w-full border-2 border-dashed border-gray-300 rounded-xl py-4 text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all"
                             >
                                 + Add New Address
@@ -238,9 +243,10 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                 </div>
 
                 {/* Bottom Button */}
-                {showForm && (
+                {isFormView && (
                     <div className="shrink-0 p-4 border-t border-gray-100">
                         <button
+                            type="button"
                             onClick={handleSave}
                             disabled={saving}
                             className="w-full bg-[#1a1a4e] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#2a2a5e] transition-colors disabled:opacity-50"
@@ -249,7 +255,8 @@ const AddressForm = ({ addresses = [], selectedAddress, onSelect, onClose, onRef
                         </button>
                         {addresses.length > 0 && (
                             <button
-                                onClick={() => setShowForm(false)}
+                                type="button"
+                                onClick={() => setView('LIST')}
                                 className="w-full text-gray-500 text-sm mt-2 py-2"
                             >
                                 ← Back to saved addresses

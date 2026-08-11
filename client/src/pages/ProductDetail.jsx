@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { toast } from 'react-toastify';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
-import { FaHeart, FaShare, FaTruck, FaStar, FaMinus, FaPlus, FaCheck, FaUtensils, FaLeaf } from 'react-icons/fa';
+import { FaShare, FaTruck, FaStar, FaMinus, FaPlus, FaCheck, FaUtensils, FaLeaf } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 import ProductCarousel from '../components/ProductCarousel';
 
@@ -13,6 +13,7 @@ import ProductSpecifications from '../components/product/ProductSpecifications';
 import ProductNutrition from '../components/product/ProductNutrition';
 import ProductCertifications from '../components/product/ProductCertifications';
 import ProductDeliveryInfo from '../components/product/ProductDeliveryInfo';
+import ProductEducationalGuides from '../components/product/ProductEducationalGuides';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -21,6 +22,18 @@ const ProductDetail = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const { addToCart, updateQuantity, getQuantity } = useCart();
     const navigate = useNavigate();
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: product?.name || 'Product',
+                url: window.location.href,
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success('Product link copied to clipboard!');
+        }
+    };
 
     const quantity = product ? getQuantity(product.id) : 0;
 
@@ -39,8 +52,6 @@ const ProductDetail = () => {
                         .slice(0, 5);
                     setSimilarProducts(related);
                 }
-
-                window.scrollTo(0, 0);
             } catch (error) {
                 console.error(error);
             }
@@ -53,14 +64,9 @@ const ProductDetail = () => {
     };
 
     if (!product) return (
-        <>
-            <Helmet>
-                <title>Loading Product... | BlueAgle</title>
-            </Helmet>
-            <div className="flex justify-center items-center min-h-screen bg-slate-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-            </div>
-        </>
+        <div className="flex justify-center items-center min-h-screen bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+        </div>
     );
 
     const price = parseFloat(product.price);
@@ -77,14 +83,6 @@ const ProductDetail = () => {
 
     return (
         <div className="bg-[#f8fafc] min-h-screen pb-24 md:pb-12 text-slate-800 font-sans">
-            <Helmet>
-                <title>{product.metaTitle || `${product.name} | BlueAgle`}</title>
-                <meta name="description" content={product.metaDescription || product.shortDescription || product.description?.substring(0, 160) || "Buy premium products at best prices."} />
-                {product.metaKeywords && <meta name="keywords" content={product.metaKeywords} />}
-                <meta property="og:title" content={product.name} />
-                <meta property="og:description" content={product.shortDescription || product.description?.substring(0, 160)} />
-                {product.images?.[0] && <meta property="og:image" content={getImageUrl(product.images[0])} />}
-            </Helmet>
 
             {/* Breadcrumb */}
             <div className="container mx-auto px-4 py-4 text-xs text-slate-500">
@@ -127,10 +125,11 @@ const ProductDetail = () => {
                             </div>
 
                             <div className="absolute top-4 right-4 flex flex-col gap-2.5 z-10">
-                                <button className="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors border border-slate-100">
-                                    <FaHeart />
-                                </button>
-                                <button className="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors border border-slate-100">
+                                <button
+                                    onClick={handleShare}
+                                    title="Share product link"
+                                    className="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors border border-slate-100"
+                                >
                                     <FaShare />
                                 </button>
                             </div>
@@ -287,6 +286,9 @@ const ProductDetail = () => {
                 <ProductSpecifications specifications={product.specifications} />
                 <ProductNutrition nutrition={product.nutrition} />
                 <ProductCertifications certifications={product.certifications} />
+
+                {/* Contextual Internal Link Section: Educational Pillar Guides */}
+                <ProductEducationalGuides categoryName={product.Category?.name} />
 
                 {/* Similar Products Carousel */}
                 {similarProducts.length > 0 && (

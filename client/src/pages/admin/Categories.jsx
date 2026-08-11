@@ -99,31 +99,20 @@ const Categories = () => {
         }
 
         try {
-                        const config = {
-                headers: { Authorization: `Bearer ${token}` },
-            };
-
             if (editingSubId) {
                 // Update subcategory
-                await adminApi.put(
-                    `/categories/sub/${editingSubId}`,
-                    { name: subName, categoryId: subCategoryId },
-                    config
-                );
+                await adminApi.put(`/categories/sub/${editingSubId}`, { name: subName, categoryId: subCategoryId });
                 toast.success('Sub-category Updated');
             } else {
                 // Create subcategory
-                await adminApi.post(
-                    '/categories/sub',
-                    { name: subName, categoryId: subCategoryId },
-                    config
-                );
+                await adminApi.post('/categories/sub', { name: subName, categoryId: subCategoryId });
                 toast.success('Sub-category Added');
             }
 
             cancelSubEdit();
             fetchCategories();
         } catch (error) {
+            console.error('Error saving subcategory:', error);
             toast.error(error.response?.data?.message || 'Error saving sub-category');
         }
     };
@@ -131,9 +120,7 @@ const Categories = () => {
     const handleSubDelete = async (subId) => {
         if (!window.confirm('Delete this sub-category?')) return;
         try {
-                        await adminApi.delete(`/categories/sub/${subId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            await adminApi.delete(`/categories/sub/${subId}`);
             toast.success('Sub-category Deleted');
             fetchCategories();
         } catch (error) {

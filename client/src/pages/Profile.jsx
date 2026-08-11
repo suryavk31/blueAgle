@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +8,7 @@ import { toast } from 'react-toastify';
 import {
     FaUser, FaPhone, FaSignOutAlt, FaBox, FaChevronDown, FaChevronUp,
     FaMapMarkerAlt, FaCreditCard, FaTruck, FaCheckCircle, FaClock,
-    FaTimesCircle, FaShoppingBag, FaReceipt, FaRedo
+    FaTimesCircle, FaShoppingBag, FaReceipt, FaRedo, FaTrash
 } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 import OrderStatusTimeline from '../components/OrderStatusTimeline';
@@ -284,14 +285,11 @@ const Profile = () => {
                                                         <p className="text-xs text-indigo-600">Download or print your official transaction receipt for Order #{order.id}</p>
                                                     </div>
                                                     <button
-                                                        onClick={async () => {
-                                                            try {
-                                                                window.open(`/api/invoice/order/${order.id}/render`, '_blank');
-                                                            } catch {
-                                                                alert('Invoice rendering in progress...');
-                                                            }
+                                                        onClick={() => {
+                                                            const apiBase = import.meta.env.VITE_API_URL || '/api';
+                                                            window.open(`${apiBase}/invoice/order/${order.id}/download`, '_blank');
                                                         }}
-                                                        className="mt-3 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-indigo-500/20"
+                                                        className="mt-3 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-indigo-500/20 flex items-center justify-center gap-1.5"
                                                     >
                                                         📄 Print / Download Invoice
                                                     </button>
@@ -300,29 +298,39 @@ const Profile = () => {
 
                                             {/* Payment */}
                                             <div className="px-5 pb-5">
-                                                <div className="bg-gray-50 rounded-xl p-3.5">
+                                                <div className="bg-gray-50 rounded-xl p-3.5 space-y-1.5">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <FaCreditCard className="text-blue-500 text-xs" />
-                                                        <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Payment</span>
+                                                        <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Payment Breakdown</span>
                                                     </div>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-sm text-gray-600">Total</span>
-                                                        <span className="text-base font-bold text-gray-800">₹{parseFloat(order.totalAmount).toFixed(2)}</span>
+                                                    <div className="flex justify-between items-center text-xs text-gray-600">
+                                                        <span>Items Subtotal</span>
+                                                        <span className="font-semibold">₹{(order.subtotal ? parseFloat(order.subtotal) : (order.OrderItems || []).reduce((s, i) => s + parseFloat(i.price) * i.quantity, 0)).toFixed(2)}</span>
                                                     </div>
-                                                    <div className="flex justify-between items-center mt-1">
-                                                        <span className="text-xs text-gray-400">Method</span>
-                                                        <span className="text-xs font-bold text-gray-600">
-                                                            {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online'}
+                                                    <div className="flex justify-between items-center text-xs text-gray-600">
+                                                        <span>Delivery Charge</span>
+                                                        <span className={`font-bold ${parseFloat(order.deliveryCharge || 0) === 0 ? 'text-emerald-600' : 'text-gray-800'}`}>
+                                                            {parseFloat(order.deliveryCharge || 0) === 0 ? 'FREE' : `₹${parseFloat(order.deliveryCharge).toFixed(2)}`}
                                                         </span>
                                                     </div>
-                                                    <div className="flex justify-between items-center mt-1">
-                                                        <span className="text-xs text-gray-400">Status</span>
-                                                        <span className={`text-xs font-bold ${order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                                                    {parseFloat(order.discountAmount || 0) > 0 && (
+                                                        <div className="flex justify-between items-center text-xs text-emerald-600">
+                                                            <span>Discount</span>
+                                                            <span className="font-semibold">- ₹{parseFloat(order.discountAmount).toFixed(2)}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                                        <span className="text-sm font-bold text-gray-800">Grand Total</span>
+                                                        <span className="text-base font-extrabold text-[#3c006b]">₹{parseFloat(order.totalAmount).toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-xs text-gray-500 pt-1">
+                                                        <span>Method: <strong>{order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online'}</strong></span>
+                                                        <span className={`font-bold ${order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-yellow-600'}`}>
                                                             {order.paymentStatus}
                                                         </span>
                                                     </div>
                                                     {order.paymentId && (
-                                                        <div className="mt-1 text-[10px] text-gray-400 truncate">ID: {order.paymentId}</div>
+                                                        <div className="text-[10px] text-gray-400 truncate pt-1">Transaction Ref: {order.paymentId}</div>
                                                     )}
                                                 </div>
                                             </div>

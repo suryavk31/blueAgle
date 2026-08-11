@@ -50,12 +50,26 @@ const Products = () => {
     const [benefits, setBenefits] = useState([]);
     const [benefitInput, setBenefitInput] = useState('');
 
-    const fetchProducts = async () => {
+    // List View Filter State
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedSubCategory, setSelectedSubCategory] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [availableSubCategories, setAvailableSubCategories] = useState([]);
+
+    const fetchProducts = async (catId = selectedCategory, subCatId = selectedSubCategory, search = searchQuery) => {
         try {
-            const res = await adminApi.get('/products');
+            const params = new URLSearchParams();
+            if (catId) params.append('categoryId', catId);
+            if (subCatId) params.append('subCategoryId', subCatId);
+            if (search) params.append('search', search);
+
+            const queryString = params.toString();
+            const url = queryString ? `/products?${queryString}` : '/products';
+
+            const res = await adminApi.get(url);
             setProducts(res.data);
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching products:', error);
         }
     };
 
@@ -72,6 +86,41 @@ const Products = () => {
         fetchProducts();
         fetchCategories();
     }, []);
+
+    const handleCategoryFilterChange = (e) => {
+        const catId = e.target.value;
+        setSelectedCategory(catId);
+        setSelectedSubCategory('');
+
+        if (catId) {
+            const cat = categories.find(c => c.id == catId);
+            setAvailableSubCategories(cat?.SubCategories || []);
+        } else {
+            setAvailableSubCategories([]);
+        }
+
+        fetchProducts(catId, '', searchQuery);
+    };
+
+    const handleSubCategoryFilterChange = (e) => {
+        const subCatId = e.target.value;
+        setSelectedSubCategory(subCatId);
+        fetchProducts(selectedCategory, subCatId, searchQuery);
+    };
+
+    const handleSearchChange = (e) => {
+        const val = e.target.value;
+        setSearchQuery(val);
+        fetchProducts(selectedCategory, selectedSubCategory, val);
+    };
+
+    const handleResetFilters = () => {
+        setSelectedCategory('');
+        setSelectedSubCategory('');
+        setSearchQuery('');
+        setAvailableSubCategories([]);
+        fetchProducts('', '', '');
+    };
 
     useEffect(() => {
         if (formData.categoryId) {
@@ -306,8 +355,72 @@ const Products = () => {
             {/* View Switching */}
             {view === 'LIST' ? (
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                        <span className="font-extrabold text-xs uppercase tracking-wider text-slate-500">All Products ({products.length})</span>
+                    {/* Filter & Search Bar */}
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-xs uppercase tracking-wider text-slate-700">
+                                Products ({products.length})
+                            </span>
+                            {(selectedCategory || selectedSubCategory || searchQuery) && (
+                                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Filtered
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Filter Inputs */}
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            {/* Search Input */}
+                            <div className="relative min-w-[180px]">
+                                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, SKU..."
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                />
+                            </div>
+
+                            {/* Category Filter Dropdown */}
+                            <select
+                                value={selectedCategory}
+                                onChange={handleCategoryFilterChange}
+                                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                            >
+                                <option value="">All Categories</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Sub-Category Filter Dropdown */}
+                            <select
+                                value={selectedSubCategory}
+                                onChange={handleSubCategoryFilterChange}
+                                disabled={!selectedCategory}
+                                className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-50 disabled:bg-slate-100"
+                            >
+                                <option value="">All Sub-Categories</option>
+                                {availableSubCategories.map((sub) => (
+                                    <option key={sub.id} value={sub.id}>
+                                        {sub.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Reset Filters Button */}
+                            {(selectedCategory || selectedSubCategory || searchQuery) && (
+                                <button
+                                    onClick={handleResetFilters}
+                                    className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors"
+                                >
+                                    Reset
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto">

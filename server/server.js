@@ -27,6 +27,7 @@ const adRoutes = require('./routes/adRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const seoRoutes = require('./routes/seoRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 const { generateSitemap } = require('./controllers/sitemapController');
 const { generateRobotsTxt } = require('./controllers/robotsController');
 
@@ -45,6 +46,7 @@ app.use('/api/ads', adRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/seo', seoRoutes);
+app.use('/api/blogs', blogRoutes);
 
 const productAttrCtrl = require('./controllers/productAttributeController');
 app.get('/api/product-attributes', productAttrCtrl.listAttributes);
@@ -61,8 +63,12 @@ const permissionsRoutes = require('./routes/permissionsRoutes');
 const invitationsRoutes = require('./routes/invitationsRoutes');
 const activityLogsRoutes = require('./routes/activityLogsRoutes');
 const invoiceBuilderRoutes = require('./routes/invoiceBuilderRoutes');
+const deliveryRoutes = require('./routes/deliveryRoutes');
 
+app.use('/api/delivery', deliveryRoutes);
+app.use('/api/admin/delivery', deliveryRoutes);
 app.use('/api/invoice', invoiceBuilderRoutes);
+app.use('/api/admin/invoice', invoiceBuilderRoutes);
 app.use('/api/admin/invoice-builder', invoiceBuilderRoutes);
 
 app.use('/api/admin/auth', adminAuthRoutes);
@@ -82,9 +88,13 @@ app.use('/api/admin/coupons', couponRoutes);
 app.use('/api/admin/ads', adRoutes);
 app.use('/api/admin/policies', policyRoutes);
 app.use('/api/admin/seo', seoRoutes);
+app.use('/api/admin/blogs', blogRoutes);
 app.use('/api/admin/customer-users', userRoutes);
 
 // ─── SEO & Sitemap ────────────────────────────────────────────────────────────
+const socialCrawlerMiddleware = require('./middleware/socialCrawlerMiddleware');
+app.use(socialCrawlerMiddleware);
+
 app.get('/sitemap.xml', generateSitemap);
 app.get('/robots.txt', generateRobotsTxt);
 

@@ -7,9 +7,33 @@ const Order = sequelize.define('Order', {
         autoIncrement: true,
         primaryKey: true,
     },
+    subtotal: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    deliveryCharge: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    discountAmount: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    taxAmount: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
     totalAmount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
+    },
+    deliveryMethod: {
+        type: DataTypes.STRING,
+        defaultValue: 'Standard',
     },
     status: {
         type: DataTypes.ENUM('Pending', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned'),

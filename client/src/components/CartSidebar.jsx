@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { FaTimes, FaMinus, FaPlus, FaTag, FaMapMarkerAlt, FaChevronDown, FaChevronUp, FaTruck, FaReceipt } from 'react-icons/fa';
+import { FaTimes, FaMinus, FaPlus, FaTag, FaMapMarkerAlt, FaChevronDown, FaChevronUp, FaTruck, FaReceipt, FaGift } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 import AddressForm from './AddressForm';
 
@@ -18,6 +18,14 @@ const CartSidebar = ({ isOpen, onClose }) => {
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [showAddressForm, setShowAddressForm] = useState(false);
     const [showCoupon, setShowCoupon] = useState(false);
+    const [deliveryCalculation, setDeliveryCalculation] = useState({
+        deliveryCharge: 49.00,
+        isFreeDelivery: false,
+        amountForFreeDelivery: 999.00,
+        freeDeliveryThreshold: 999.00,
+        freeDeliveryEnabled: true,
+        currencySymbol: '₹',
+    });
     const navigate = useNavigate();
 
     const fetchAddresses = async () => {
@@ -36,11 +44,40 @@ const CartSidebar = ({ isOpen, onClose }) => {
         }
     };
 
+    const fetchDeliveryCalculation = async () => {
+        try {
+            const payload = {
+                items: cartItems,
+                couponCode: appliedCoupon?.code || null,
+                deliveryMethod: 'Standard',
+            };
+            const res = await api.post('/delivery/calculate', payload);
+            if (res.data) {
+                setDeliveryCalculation({
+                    deliveryCharge: parseFloat(res.data.deliveryCharge) || 0,
+                    isFreeDelivery: Boolean(res.data.isFreeDelivery),
+                    amountForFreeDelivery: parseFloat(res.data.amountForFreeDelivery) || 0,
+                    freeDeliveryThreshold: parseFloat(res.data.freeDeliveryThreshold) || 999,
+                    freeDeliveryEnabled: Boolean(res.data.freeDeliveryEnabled),
+                    currencySymbol: res.data.currencySymbol || '₹',
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching delivery calculation:', err);
+        }
+    };
+
     useEffect(() => {
         if (isOpen && currentUser) {
             fetchAddresses();
         }
     }, [isOpen, currentUser]);
+
+    useEffect(() => {
+        if (isOpen && cartItems.length > 0) {
+            fetchDeliveryCalculation();
+        }
+    }, [isOpen, cartItems, subtotal, appliedCoupon]);
 
     const applyCoupon = async () => {
         if (!couponCode.trim()) return;
@@ -78,9 +115,9 @@ const CartSidebar = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const handlingCharge = 0;
-    const deliveryFee = 0;
-    const total = subtotal - discount + handlingCharge + deliveryFee;
+    const deliveryFee = deliveryCalculation.deliveryCharge;
+    const total = Math.max(0, subtotal - discount + deliveryFee);
+    const progressPercent = Math.min(100, Math.round((subtotal / deliveryCalculation.freeDeliveryThreshold) * 100));
 
     return (
         <>
@@ -110,6 +147,28 @@ const CartSidebar = ({ isOpen, onClose }) => {
                     ) : (
                         <div className="space-y-2 p-3">
 
+                            {/* Dynamic Free Shipping Progress Banner */}
+                            {deliveryCalculation.freeDeliveryEnabled && (
+                                <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-xl p-3.5 shadow-sm border border-purple-800">
+                                    <div className="flex items-center gap-2 text-xs font-bold mb-1.5">
+                                        <FaGift className="text-amber-400" />
+                                        <span>
+                                            {deliveryCalculation.isFreeDelivery ? (
+                                                '🎉 FREE Delivery Unlocked!'
+                                            ) : (
+                                                `Add ${deliveryCalculation.currencySymbol}${deliveryCalculation.amountForFreeDelivery.toFixed(0)} more for FREE Delivery`
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+                                        <div
+                                            className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full transition-all duration-500"
+                                            style={{ width: `${progressPercent}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Cart Items */}
                             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
@@ -137,45 +196,42 @@ const CartSidebar = ({ isOpen, onClose }) => {
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-sm font-semibold text-gray-800 truncate">{item.name}</h4>
                                                 <p className="text-xs text-gray-400 truncate">{item.description || '1 pack'}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-sm font-bold text-gray-900">₹{itemPrice.toFixed(0)}</span>
+                                                    {itemMrp > itemPrice && (
+                                                        <span className="text-xs text-gray-400 line-through">₹{itemMrp}</span>
+                                                    )}
+                                                </div>
                                             </div>
 
-                                            {/* Quantity Controls */}
-                                            <div className="flex items-center gap-0 border border-[#ff3269] rounded-lg overflow-hidden shrink-0">
-                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-[#ff3269] hover:bg-pink-50 text-xs">
-                                                    <FaMinus />
-                                                </button>
-                                                <span className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#ff3269] bg-pink-50">{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-[#ff3269] hover:bg-pink-50 text-xs">
-                                                    <FaPlus />
-                                                </button>
-                                            </div>
-
-                                            {/* Price */}
-                                            <div className="text-right shrink-0 w-16">
-                                                <div className="text-sm font-bold text-gray-800">₹{itemPrice.toFixed(0)}</div>
-                                                <div className="text-[10px] text-gray-400 line-through">₹{itemMrp}</div>
+                                            {/* Qty Counter */}
+                                            <div className="flex items-center border border-[#ff3269] rounded-lg overflow-hidden shrink-0">
+                                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 text-[#ff3269] text-xs hover:bg-rose-50"><FaMinus /></button>
+                                                <span className="px-2 py-1 text-xs font-bold text-[#ff3269] bg-rose-50/50">{item.quantity}</span>
+                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 text-[#ff3269] text-xs hover:bg-rose-50"><FaPlus /></button>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
 
-                            {/* Coupon Section */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-                                <button onClick={() => setShowCoupon(!showCoupon)} className="w-full flex items-center justify-between px-4 py-3.5">
-                                    <div className="flex items-center gap-3">
-                                        <FaTag className="text-blue-500" />
-                                        <span className="font-semibold text-sm text-gray-700">
-                                            {appliedCoupon ? `"${appliedCoupon.code}" applied` : 'Apply Coupon'}
-                                        </span>
+                            {/* Coupons Section */}
+                            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <button
+                                    onClick={() => setShowCoupon(!showCoupon)}
+                                    className="w-full flex items-center justify-between text-sm font-bold text-gray-700"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <FaTag className="text-[#ff3269]" />
+                                        <span>Apply Coupon Code</span>
                                     </div>
-                                    {showCoupon ? <FaChevronUp className="text-gray-400 text-xs" /> : <FaChevronDown className="text-gray-400 text-xs" />}
+                                    {showCoupon ? <FaChevronUp className="text-xs" /> : <FaChevronDown className="text-xs" />}
                                 </button>
 
                                 {showCoupon && (
-                                    <div className="px-4 pb-4">
+                                    <div className="mt-3">
                                         {appliedCoupon ? (
-                                            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                                            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-2.5">
                                                 <div>
                                                     <span className="text-sm font-bold text-green-700">{appliedCoupon.code}</span>
                                                     <span className="text-xs text-green-600 ml-2">- ₹{discount.toFixed(2)} OFF</span>
@@ -214,13 +270,11 @@ const CartSidebar = ({ isOpen, onClose }) => {
                                             <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                                         </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Handling Charge</span>
-                                        <span className="font-semibold">₹{handlingCharge.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Delivery Fee</span>
-                                        <span className="font-semibold text-green-600">{deliveryFee === 0 ? 'Free' : `₹${deliveryFee.toFixed(2)}`}</span>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-500">Delivery Charge</span>
+                                        <span className={`font-extrabold ${deliveryFee === 0 ? 'text-emerald-600' : 'text-gray-800'}`}>
+                                            {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
+                                        </span>
                                     </div>
                                     {discount > 0 && (
                                         <div className="flex justify-between text-green-600">
@@ -233,7 +287,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                                         <span>Total Bill</span>
                                         <span>₹{total.toFixed(2)}</span>
                                     </div>
-                                    <p className="text-[10px] text-gray-400">Incl. all taxes and charges</p>
+                                    <p className="text-[10px] text-gray-400">Incl. all taxes and delivery charges</p>
                                 </div>
                             </div>
 
@@ -264,9 +318,10 @@ const CartSidebar = ({ isOpen, onClose }) => {
                                 onClose();
                                 navigate('/checkout');
                             }}
-                            className="w-full bg-[#1a1a4e] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#2a2a5e] transition-colors shadow-lg"
+                            className="w-full bg-[#1a1a4e] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#2a2a5e] transition-colors shadow-lg flex items-center justify-between px-6"
                         >
-                            Proceed to Checkout
+                            <span>Proceed to Checkout</span>
+                            <span>₹{total.toFixed(2)}</span>
                         </button>
                     </div>
                 )}

@@ -46,7 +46,7 @@ const AdminLayout = () => {
                 />
 
                 {/* Main Scrollable Content */}
-                <main className="flex-1 overflow-y-auto p-3 xs:p-4 sm:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+                <main id="admin-main-scroll-container" className="flex-1 overflow-y-auto p-3 xs:p-4 sm:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                     <div className="max-w-7xl mx-auto">
                         <Outlet />
                     </div>

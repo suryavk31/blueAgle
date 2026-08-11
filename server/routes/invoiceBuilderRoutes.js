@@ -5,6 +5,8 @@ const { verifyAdminToken, requirePermission } = require('../middleware/adminAuth
 
 // Customer / Admin Render Order Invoice API
 router.get('/order/:orderId/render', ctrl.renderOrderInvoice);
+router.get('/order/:orderId/download', ctrl.downloadOrderInvoiceHtml);
+router.post('/order/:orderId/generate', ctrl.generateOrderInvoice);
 
 // Admin Category & Variable endpoints
 router.get('/categories', verifyAdminToken, requirePermission('InvoiceBuilder', 'View'), ctrl.listCategories);

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { FaMinus, FaPlus } from 'react-icons/fa';
-import { getImageUrl } from '../utils/imageHelper';
+import SafeImage from './SafeImage';
 import { useCart } from '../context/CartContext';
 
 const ProductCard = memo(({ product }) => {
@@ -36,7 +36,7 @@ const ProductCard = memo(({ product }) => {
     return (
         <Link 
             to={`/product/${product.id}`} 
-            className="block w-full h-full bg-white rounded-2xl border border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col group overflow-hidden"
+            className="block w-full max-w-[205px] h-full bg-white rounded-2xl border border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col group overflow-hidden shrink-0"
         >
             {/* Discount Badge */}
             {discountPercent > 0 && (
@@ -47,21 +47,17 @@ const ProductCard = memo(({ product }) => {
 
             {/* Image Container — fixed height ratio */}
             <div className="w-full h-[150px] sm:h-[165px] relative p-3 flex items-center justify-center bg-gray-50/60 shrink-0">
-                {product.images?.[0] ? (
-                    <img 
-                        src={getImageUrl(product.images[0])} 
-                        alt={product.name} 
-                        className="max-w-full max-h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105" 
-                        loading="lazy"
-                    />
-                ) : (
-                    <div className="text-gray-300 text-xs font-semibold">No Image</div>
-                )}
+                <SafeImage 
+                    src={product.images?.[0]} 
+                    alt={product.name} 
+                    className="max-w-full max-h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105" 
+                />
 
                 {/* Add / Quantity Button */}
-                <div className="absolute -bottom-3 right-2.5 z-20" onClick={(e) => e.preventDefault()}>
+                <div className="absolute -bottom-3 right-2.5 z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                     {quantity === 0 ? (
                         <button
+                            type="button"
                             onClick={handleAdd}
                             className="bg-white border border-[#ff3269] text-[#ff3269] text-xs font-black px-4 py-1.5 rounded-xl shadow-md uppercase tracking-wider hover:bg-[#ff3269] hover:text-white transition-all active:scale-95"
                         >
@@ -69,9 +65,9 @@ const ProductCard = memo(({ product }) => {
                         </button>
                     ) : (
                         <div className="bg-[#ff3269] text-white flex items-center justify-between px-2.5 py-1.5 rounded-xl gap-2 min-w-[84px] shadow-md">
-                            <button onClick={handleDecrement} className="text-white text-[10px] w-5 h-5 flex items-center justify-center hover:bg-black/10 rounded"><FaMinus /></button>
+                            <button type="button" onClick={handleDecrement} className="text-white text-[10px] w-5 h-5 flex items-center justify-center hover:bg-black/10 rounded"><FaMinus /></button>
                             <span className="text-white text-xs font-extrabold">{quantity}</span>
-                            <button onClick={handleIncrement} className="text-white text-[10px] w-5 h-5 flex items-center justify-center hover:bg-black/10 rounded"><FaPlus /></button>
+                            <button type="button" onClick={handleIncrement} className="text-white text-[10px] w-5 h-5 flex items-center justify-center hover:bg-black/10 rounded"><FaPlus /></button>
                         </div>
                     )}
                 </div>

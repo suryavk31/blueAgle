@@ -53,6 +53,8 @@ export const SeoProvider = ({ children }) => {
             return;
         }
 
+        // Reset current SEO during route transition to prevent stale metadata
+        setSeo(null);
         fetchSeoForRoute(routeKey);
     }, [routeKey]);
 
@@ -66,10 +68,18 @@ export const SeoProvider = ({ children }) => {
     const formattedOgImage = seo?.ogImage ? getImageUrl(seo.ogImage) : '/logo.png';
     const formattedTwitterImage = seo?.twitterImage ? getImageUrl(seo.twitterImage) : '/logo.png';
 
+    // Prepare JSON-LD script content
+    let jsonLdContent = null;
+    if (seo?.structuredData) {
+        jsonLdContent = typeof seo.structuredData === 'string'
+            ? seo.structuredData
+            : JSON.stringify(seo.structuredData, null, 2);
+    }
+
     return (
         <SeoContext.Provider value={{ seo, globalSettings, loading, refreshSeoCache }}>
             {seo && (
-                <Helmet>
+                <Helmet key={routeKey}>
                     {/* Primary Title & Meta */}
                     <title>{formattedTitle}</title>
                     {seo.metaDescription && <meta name="description" content={seo.metaDescription} />}
@@ -82,6 +92,7 @@ export const SeoProvider = ({ children }) => {
                     {seo.canonicalUrl && <link rel="canonical" href={seo.canonicalUrl} />}
 
                     {/* Open Graph Tags */}
+                    <meta property="og:site_name" content="BlueAgle" />
                     {seo.ogTitle && <meta property="og:title" content={seo.ogTitle} />}
                     {seo.ogDescription && <meta property="og:description" content={seo.ogDescription} />}
                     {formattedOgImage && <meta property="og:image" content={formattedOgImage} />}
@@ -95,11 +106,9 @@ export const SeoProvider = ({ children }) => {
                     {formattedTwitterImage && <meta name="twitter:image" content={formattedTwitterImage} />}
 
                     {/* Structured Data (JSON-LD) */}
-                    {seo.structuredData && (
+                    {jsonLdContent && (
                         <script type="application/ld+json">
-                            {typeof seo.structuredData === 'string' 
-                                ? seo.structuredData 
-                                : JSON.stringify(seo.structuredData)}
+                            {jsonLdContent}
                         </script>
                     )}
                 </Helmet>

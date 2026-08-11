@@ -15,10 +15,12 @@ const getCategories = async (req, res) => {
 const createCategory = async (req, res) => {
     try {
         const { name } = req.body;
+        console.log(`📁 [createCategory] Category Name: "${name}", File attached:`, req.file ? req.file.originalname : 'NO FILE');
         let image = null;
         if (req.file) {
             const result = await uploadToImageKit(req.file.buffer, req.file.originalname);
             image = result.url;
+            console.log(`✅ [createCategory] Category Image Uploaded:`, image);
         }
         const category = await Category.create({ name, image });
 
@@ -29,6 +31,7 @@ const createCategory = async (req, res) => {
 
         res.status(201).json(category);
     } catch (error) {
+        console.error(`❌ [createCategory] Error:`, error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -37,6 +40,7 @@ const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name } = req.body;
+        console.log(`📁 [updateCategory] Category ID: ${id}, File attached:`, req.file ? req.file.originalname : 'NO FILE');
         const category = await Category.findByPk(id);
         if (!category) return res.status(404).json({ message: 'Category not found' });
 
@@ -44,11 +48,13 @@ const updateCategory = async (req, res) => {
         if (req.file) {
             const result = await uploadToImageKit(req.file.buffer, req.file.originalname);
             category.image = result.url;
+            console.log(`✅ [updateCategory] Category Image Uploaded:`, category.image);
         }
 
         await category.save();
         res.json(category);
     } catch (error) {
+        console.error(`❌ [updateCategory] Error:`, error);
         res.status(500).json({ message: error.message });
     }
 };

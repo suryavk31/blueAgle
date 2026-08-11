@@ -12,11 +12,12 @@
  *   - Idempotent — safe to run multiple times
  */
 
-const { SeoSetting, SeoGlobalSetting, SeoAuditLog, Product, Category, SubCategory, Policy } = require('../models');
+const { SeoSetting, SeoGlobalSetting, SeoAuditLog, Product, Category, SubCategory, Policy, Blog } = require('../models');
 const { sequelize } = require('../models');
 const { Op } = require('sequelize');
 
-const SITE_BASE_URL = process.env.SITE_URL || 'https://blueagle.in';
+const { getSiteUrl, getCanonicalUrl, getAbsoluteUrl } = require('../utils/seoUrlHelper');
+
 const SITE_NAME = 'BlueAgle';
 const SITE_TAGLINE = 'Organic & Wood-Pressed Essentials';
 
@@ -50,14 +51,15 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Shop pure wood pressed oils, organic A2 desi ghee, honey, nuts, and authentic grocery staples. Free delivery across India.`),
             metaKeywords: 'wood pressed oil, organic grocery, cold pressed coconut oil, pure ghee, a2 desi ghee, blueagle, organic store',
             ogType: 'website',
+            canonicalUrl: getCanonicalUrl('/'),
             structuredData: {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
                 "name": `${SITE_NAME} - ${SITE_TAGLINE}`,
-                "url": SITE_BASE_URL,
+                "url": getSiteUrl(),
                 "potentialAction": {
                     "@type": "SearchAction",
-                    "target": `${SITE_BASE_URL}/products?search={search_term_string}`,
+                    "target": `${getSiteUrl()}/products?search={search_term_string}`,
                     "query-input": "required name=search_term_string"
                 }
             }
@@ -76,6 +78,7 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Browse our complete range of organic, wood-pressed, and natural grocery products. Filter by category, price, and more.`),
             metaKeywords: 'organic products, wood pressed oils, organic grocery store, buy organic online, blueagle products',
             ogType: 'website',
+            canonicalUrl: getCanonicalUrl('/products'),
         })
     },
     {
@@ -92,6 +95,7 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Sign in to your ${SITE_NAME} account to track orders, manage your wishlist, and enjoy fast checkout.`),
             metaKeywords: 'login, sign in, blueagle account',
             robots: 'noindex, nofollow',
+            canonicalUrl: getCanonicalUrl('/login'),
         })
     },
     {
@@ -107,6 +111,7 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Manage your ${SITE_NAME} profile, view order history, and update your personal information.`),
             metaKeywords: 'my account, profile, order history, blueagle',
             robots: 'noindex, nofollow',
+            canonicalUrl: getCanonicalUrl('/profile'),
         })
     },
     {
@@ -122,6 +127,7 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Complete your purchase securely at ${SITE_NAME}. Fast delivery, easy payment options, and 100% satisfaction guaranteed.`),
             metaKeywords: 'checkout, buy online, secure payment, blueagle checkout',
             robots: 'noindex, nofollow',
+            canonicalUrl: getCanonicalUrl('/checkout'),
         })
     },
     {
@@ -136,6 +142,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Search Organic Products | ${SITE_NAME}`),
             metaDescription: safeDesc(`Search through our curated collection of organic and wood-pressed grocery products. Find exactly what you need at ${SITE_NAME}.`),
             metaKeywords: 'search products, organic grocery search, find organic items, blueagle search',
+            canonicalUrl: getCanonicalUrl('/products'),
         })
     },
     {
@@ -151,6 +158,7 @@ const STATIC_PAGES = [
             metaDescription: safeDesc(`Request deletion of your ${SITE_NAME} account and associated data. Your data will be removed within 30 days of your request.`),
             metaKeywords: 'delete account, account removal, data deletion, blueagle',
             robots: 'noindex, nofollow',
+            canonicalUrl: getCanonicalUrl('/account/delete'),
         })
     },
     // ── Policy Pages ──────────────────────────────────────────────────────────
@@ -166,6 +174,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Privacy Policy | ${SITE_NAME}`),
             metaDescription: safeDesc(`Read our comprehensive Privacy Policy to understand how ${SITE_NAME} collects, uses, and protects your personal data.`),
             metaKeywords: 'privacy policy, data protection, blueagle privacy, personal data',
+            canonicalUrl: getCanonicalUrl('/policy/privacy-policy'),
         })
     },
     {
@@ -180,6 +189,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Terms & Conditions | ${SITE_NAME}`),
             metaDescription: safeDesc(`Read the Terms and Conditions governing your use of ${SITE_NAME} — our online organic grocery store.`),
             metaKeywords: 'terms and conditions, terms of service, blueagle terms, user agreement',
+            canonicalUrl: getCanonicalUrl('/policy/terms-and-conditions'),
         })
     },
     {
@@ -194,6 +204,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Refund & Return Policy | ${SITE_NAME}`),
             metaDescription: safeDesc(`Learn about our hassle-free refund and return policy at ${SITE_NAME}. We guarantee your satisfaction with every order.`),
             metaKeywords: 'refund policy, return policy, blueagle refund, money back guarantee',
+            canonicalUrl: getCanonicalUrl('/policy/refund-policy'),
         })
     },
     {
@@ -208,6 +219,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Shipping Policy | ${SITE_NAME}`),
             metaDescription: safeDesc(`Understand our delivery timelines, shipping zones, and fees at ${SITE_NAME}. We offer fast, reliable delivery across India.`),
             metaKeywords: 'shipping policy, delivery policy, blueagle shipping, delivery time',
+            canonicalUrl: getCanonicalUrl('/policy/shipping-policy'),
         })
     },
     {
@@ -222,6 +234,7 @@ const STATIC_PAGES = [
             title: safeTitle(`Account Deletion Policy | ${SITE_NAME}`),
             metaDescription: safeDesc(`Read how to permanently delete your ${SITE_NAME} account and what happens to your data after deletion.`),
             metaKeywords: 'account deletion policy, delete my data, blueagle account deletion, GDPR',
+            canonicalUrl: getCanonicalUrl('/policy/account-deletion-policy'),
         })
     },
 ];
@@ -250,6 +263,60 @@ const generateProductSeo = (product, globalSettings) => {
         ...(product.tags || []),
     ].filter(Boolean).join(', ');
 
+    const prodUrl = getCanonicalUrl(`/product/${product.id}`);
+    const prodImg = (product.images && product.images[0]) ? getAbsoluteUrl(product.images[0]) : getAbsoluteUrl(globalSettings.defaultOgImage);
+
+    // Build Schemas (Product + BreadcrumbList)
+    const productSchema = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "description": product.description || shortDesc,
+        "brand": { "@type": "Brand", "name": brand },
+        "image": product.images ? product.images.map(img => getAbsoluteUrl(img)) : [prodImg],
+        "sku": product.sku || `PROD-${product.id}`,
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "INR",
+            "price": String(product.price),
+            "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "url": prodUrl
+        }
+    };
+
+    const breadcrumbItems = [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": getSiteUrl() },
+    ];
+    let pos = 2;
+    if (product.SubCategory?.Category) {
+        breadcrumbItems.push({
+            "@type": "ListItem",
+            "position": pos++,
+            "name": product.SubCategory.Category.name,
+            "item": getCanonicalUrl(`/products?category=${product.SubCategory.Category.id}`)
+        });
+    }
+    if (product.SubCategory) {
+        breadcrumbItems.push({
+            "@type": "ListItem",
+            "position": pos++,
+            "name": product.SubCategory.name,
+            "item": getCanonicalUrl(`/products?category=${product.SubCategory.Category?.id || ''}&subcategory=${product.SubCategory.id}`)
+        });
+    }
+    breadcrumbItems.push({
+        "@type": "ListItem",
+        "position": pos,
+        "name": product.name,
+        "item": prodUrl
+    });
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbItems
+    };
+
     return {
         pageKey: `product_${product.id}`,
         pageName: product.name,
@@ -261,29 +328,16 @@ const generateProductSeo = (product, globalSettings) => {
         title,
         metaDescription: desc,
         metaKeywords: keywords,
-        canonicalUrl: `${SITE_BASE_URL}/product/${product.id}`,
+        canonicalUrl: prodUrl,
         ogTitle: safeTitle(`${product.name} | ${brand}`),
         ogDescription: desc,
-        ogImage: (product.images && product.images[0]) ? product.images[0] : globalSettings.defaultOgImage,
+        ogImage: prodImg,
         ogType: 'product',
         twitterTitle: safeTitle(`${product.name} | ${SITE_NAME}`),
         twitterDescription: desc,
-        twitterImage: (product.images && product.images[0]) ? product.images[0] : globalSettings.defaultTwitterImage,
+        twitterImage: prodImg,
         author: brand,
-        structuredData: {
-            "@context": "https://schema.org/",
-            "@type": "Product",
-            "name": product.name,
-            "description": product.description || shortDesc,
-            "brand": { "@type": "Brand", "name": brand },
-            "offers": {
-                "@type": "Offer",
-                "priceCurrency": "INR",
-                "price": String(product.price),
-                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                "url": `${SITE_BASE_URL}/product/${product.id}`
-            }
-        }
+        structuredData: [productSchema, breadcrumbSchema]
     };
 };
 
@@ -293,59 +347,91 @@ const generateCategorySeo = (category, globalSettings) => {
         `Shop our premium ${category.name} range — 100% organic, wood-pressed, and naturally processed. Discover the best ${category.name} products at ${SITE_NAME}.`
     );
     const keywords = `${category.name}, organic ${category.name}, buy ${category.name} online, ${category.name} products, ${SITE_NAME} ${category.name}`;
+    const catRoute = `/products?category=${category.id}`;
+    const catUrl = getCanonicalUrl(catRoute);
 
     return {
         pageKey: `category_${category.id}`,
         pageName: category.name,
         pageType: 'category',
-        route: `/products?categoryId=${category.id}`,
+        route: catRoute,
         priority: 0.75,
         changeFrequency: 'weekly',
         isIndexed: true,
         title,
         metaDescription: desc,
         metaKeywords: keywords,
-        canonicalUrl: `${SITE_BASE_URL}/products?categoryId=${category.id}`,
+        canonicalUrl: catUrl,
         ogTitle: title,
         ogDescription: desc,
-        ogImage: category.image || globalSettings.defaultOgImage,
+        ogImage: category.image ? getAbsoluteUrl(category.image) : getAbsoluteUrl(globalSettings.defaultOgImage),
         ogType: 'website',
         twitterTitle: title,
         twitterDescription: desc,
-        structuredData: {
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            "name": `${category.name} | ${SITE_NAME}`,
-            "description": desc,
-            "url": `${SITE_BASE_URL}/products?categoryId=${category.id}`
-        }
+        structuredData: [
+            {
+                "@context": "https://schema.org",
+                "@type": "CollectionPage",
+                "name": `${category.name} | ${SITE_NAME}`,
+                "description": desc,
+                "url": catUrl
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Home", "item": getSiteUrl() },
+                    { "@type": "ListItem", "position": 2, "name": category.name, "item": catUrl }
+                ]
+            }
+        ]
     };
 };
 
 const generateSubCategorySeo = (sub, globalSettings) => {
     const catName = sub.Category?.name || 'Organic Products';
+    const catId = sub.Category?.id || sub.categoryId || '';
     const title = safeTitle(`${sub.name} | ${catName} | ${SITE_NAME}`);
     const desc = safeDesc(
         `Explore our ${sub.name} collection under ${catName}. Naturally processed, chemical-free products delivered fresh to your doorstep.`
     );
     const keywords = `${sub.name}, organic ${sub.name}, ${catName}, buy ${sub.name} online, blueagle`;
+    const subRoute = catId ? `/products?category=${catId}&subcategory=${sub.id}` : `/products?subcategory=${sub.id}`;
+    const subUrl = getCanonicalUrl(subRoute);
+
+    const breadcrumbs = [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": getSiteUrl() }
+    ];
+    if (catId && sub.Category) {
+        breadcrumbs.push({ "@type": "ListItem", "position": 2, "name": sub.Category.name, "item": getCanonicalUrl(`/products?category=${catId}`) });
+        breadcrumbs.push({ "@type": "ListItem", "position": 3, "name": sub.name, "item": subUrl });
+    } else {
+        breadcrumbs.push({ "@type": "ListItem", "position": 2, "name": sub.name, "item": subUrl });
+    }
 
     return {
         pageKey: `subcategory_${sub.id}`,
         pageName: sub.name,
         pageType: 'subcategory',
-        route: `/products?subCategoryId=${sub.id}`,
+        route: subRoute,
         priority: 0.7,
         changeFrequency: 'weekly',
         isIndexed: true,
         title,
         metaDescription: desc,
         metaKeywords: keywords,
-        canonicalUrl: `${SITE_BASE_URL}/products?subCategoryId=${sub.id}`,
+        canonicalUrl: subUrl,
         ogTitle: title,
         ogDescription: desc,
-        ogImage: globalSettings.defaultOgImage,
+        ogImage: getAbsoluteUrl(globalSettings.defaultOgImage),
         ogType: 'website',
+        structuredData: [
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": breadcrumbs
+            }
+        ]
     };
 };
 
@@ -356,21 +442,22 @@ const generatePolicySeo = (policy, globalSettings) => {
         policy.content?.blocks?.[0]?.text?.slice(0, 140) ||
         `Read the ${typeLabel} of ${SITE_NAME} — your trusted organic grocery store.`
     );
+    const policyRoute = `/policy/${policy.type}`;
     return {
         pageKey: `policy_${slugify(policy.type)}`,
         pageName: typeLabel,
         pageType: 'policy',
-        route: `/policy/${policy.type}`,
+        route: policyRoute,
         priority: 0.4,
         changeFrequency: 'monthly',
         isIndexed: true,
         title,
         metaDescription: desc,
         metaKeywords: `${typeLabel.toLowerCase()}, blueagle policy, ${typeLabel.toLowerCase()} blueagle`,
-        canonicalUrl: `${SITE_BASE_URL}/policy/${policy.type}`,
+        canonicalUrl: getCanonicalUrl(policyRoute),
         ogTitle: title,
         ogDescription: desc,
-        ogImage: globalSettings.defaultOgImage,
+        ogImage: getAbsoluteUrl(globalSettings.defaultOgImage),
     };
 };
 
@@ -460,6 +547,79 @@ const runSeoSync = async ({
         }
     } catch (e) {
         // Policy model may not have all columns — safe fallback
+    }
+
+    // 6. Dynamic: Blogs (from DB)
+    try {
+        const blogs = await Blog.findAll({ where: { status: 'Published' } });
+        for (const blog of blogs) {
+            const blogRoute = `/blog/${blog.slug}`;
+            const canonicalUrl = blog.canonicalUrl || getCanonicalUrl(blogRoute);
+            const title = safeTitle(blog.metaTitle || `${blog.title} | BlueAgle Guides`);
+            const metaDescription = safeDesc(blog.metaDescription || blog.excerpt || blog.content);
+            const ogImg = blog.image ? getAbsoluteUrl(blog.image) : getAbsoluteUrl('/logo.png');
+
+            const articleSchema = {
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": blog.title,
+                "description": metaDescription,
+                "image": [ogImg],
+                "datePublished": blog.publishedAt || blog.createdAt,
+                "dateModified": blog.updatedAt,
+                "author": {
+                    "@type": "Person",
+                    "name": blog.author || "BlueAgle Editorial Team"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "BlueAgle",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": getAbsoluteUrl('/logo.png')
+                    }
+                },
+                "mainEntityOfPage": canonicalUrl
+            };
+
+            const breadcrumbSchema = {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Home", "item": getSiteUrl() },
+                    { "@type": "ListItem", "position": 2, "name": "Blog & Guides", "item": getCanonicalUrl('/blog') },
+                    { "@type": "ListItem", "position": 3, "name": blog.title, "item": canonicalUrl }
+                ]
+            };
+
+            allPages.push({
+                pageKey: `blog_${blog.id}`,
+                pageName: `Blog: ${blog.title}`,
+                pageType: 'blog',
+                route: blogRoute,
+                priority: 0.8,
+                changeFrequency: 'weekly',
+                isIndexed: blog.isIndexed !== undefined ? blog.isIndexed : true,
+                robots: 'index, follow',
+                title,
+                metaDescription,
+                metaKeywords: blog.metaKeywords || `${blog.category.toLowerCase()}, cold pressed oil guide`,
+                canonicalUrl,
+                ogTitle: blog.title,
+                ogDescription: metaDescription,
+                ogImage: ogImg,
+                ogUrl: canonicalUrl,
+                ogType: 'article',
+                twitterCard: 'summary_large_image',
+                twitterTitle: blog.title,
+                twitterDescription: metaDescription,
+                twitterImage: ogImg,
+                structuredData: [articleSchema, breadcrumbSchema],
+                createdBy: 'seo_sync_engine'
+            });
+        }
+    } catch (e) {
+        // Blog query fallback
     }
 
     report.scanned = allPages.length;

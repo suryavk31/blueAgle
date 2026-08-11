@@ -1,9 +1,15 @@
 export const getImageUrl = (path) => {
-    if (!path) return 'https://via.placeholder.com/150';
-    if (typeof path === 'string' && (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//'))) {
-        return path;
+    if (!path) return '';
+    if (typeof path === 'string') {
+        const trimmed = path.trim();
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('//')) {
+            return trimmed;
+        }
     }
-    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5000';
-    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
-};
 
+    const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const baseUrl = rawApiUrl.replace(/\/api\/?$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+    return `${baseUrl}${cleanPath}`;
+};

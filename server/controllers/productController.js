@@ -103,16 +103,17 @@ const syncProductSubRecords = async (productId, body) => {
     }
 };
 
-// ─── Create Product ───────────────────────────────────────────────────────────
 const createProduct = async (req, res) => {
     try {
         const body = req.body;
-        let images = parseJsonField(body.existingImages || body.images);
+        console.log(`📦 [createProduct] Received request to create product "${body.name}". Files attached: ${req.files ? req.files.length : 0}`);
 
         if (req.files && req.files.length > 0) {
+            console.log(`📷 [createProduct] Processing ${req.files.length} uploaded files...`);
             const uploadPromises = req.files.map(file => uploadToImageKit(file.buffer, file.originalname));
             const results = await Promise.all(uploadPromises);
             images = [...images, ...results.map(r => r.url)];
+            console.log(`✅ [createProduct] All files uploaded. Final image URLs:`, images);
         }
 
         const product = await Product.create({
@@ -183,7 +184,8 @@ const getProducts = async (req, res) => {
     try {
         const { categoryId, subCategoryId, search, minPrice, maxPrice, sortBy, categoryIds, flag } = req.query;
         let where = {};
-        let include = [...defaultProductIncludes];
+
+        let subCategoryInclude = { model: SubCategory, include: [Category] };
 
         if (subCategoryId) where.subCategoryId = subCategoryId;
         if (flag === 'featured') where.isFeatured = true;
@@ -207,10 +209,22 @@ const getProducts = async (req, res) => {
 
         if (categoryIds) {
             const catArray = Array.isArray(categoryIds) ? categoryIds : categoryIds.split(',');
-            include[0].where = { categoryId: { [Op.in]: catArray } };
+            subCategoryInclude.where = { categoryId: { [Op.in]: catArray } };
+            subCategoryInclude.required = true;
         } else if (categoryId) {
-            include[0].where = { categoryId };
+            subCategoryInclude.where = { categoryId };
+            subCategoryInclude.required = true;
         }
+
+        const include = [
+            subCategoryInclude,
+            { model: ProductHighlight, as: 'highlights' },
+            { model: ProductSpecification, as: 'specifications' },
+            { model: ProductBadge, as: 'badges' },
+            { model: ProductCertification, as: 'certifications' },
+            { model: ProductNutrition, as: 'nutrition' },
+            { model: ProductAttributeValue, as: 'attributeValues', include: [{ model: ProductAttribute, as: 'attribute' }] },
+        ];
 
         let order = [['createdAt', 'DESC']];
         if (sortBy === 'price_asc') order = [['price', 'ASC']];
@@ -219,6 +233,7 @@ const getProducts = async (req, res) => {
         if (sortBy === 'oldest') order = [['createdAt', 'ASC']];
 
         const products = await Product.findAll({ where, include, order });
+        console.log(`📦 [getProducts] Found ${products.length} products (Query params: categoryId=${categoryId || 'ALL'}, search=${search || 'NONE'})`);
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -249,12 +264,15 @@ const updateProduct = async (req, res) => {
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
         const body = req.body;
+        console.log(`✏️ [updateProduct] Received request to update product ID ${id}. Files attached: ${req.files ? req.files.length : 0}`);
         let images = parseJsonField(body.existingImages || product.images);
 
         if (req.files && req.files.length > 0) {
+            console.log(`📷 [updateProduct] Processing ${req.files.length} uploaded files...`);
             const uploadPromises = req.files.map(file => uploadToImageKit(file.buffer, file.originalname));
             const results = await Promise.all(uploadPromises);
             images = [...images, ...results.map(r => r.url)];
+            console.log(`✅ [updateProduct] All files uploaded. Final image URLs:`, images);
         }
 
         Object.keys(body).forEach(key => {
