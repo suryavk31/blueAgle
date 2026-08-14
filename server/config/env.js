@@ -24,14 +24,14 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const serverRoot = path.resolve(__dirname, '..');
 
 if (NODE_ENV === 'production') {
-    // ── Production: load .env only ────────────────────────────────────────────
+    // ── Production: load .env if file exists (local testing / VPS), otherwise use platform env (Render/Railway/etc) ──
     const prodEnvPath = path.join(serverRoot, '.env');
-    if (!fs.existsSync(prodEnvPath)) {
-        console.error('[ENV] FATAL: .env file not found for production. Cannot start server.');
-        process.exit(1);
+    if (fs.existsSync(prodEnvPath)) {
+        dotenv.config({ path: prodEnvPath });
+        console.log('[ENV] Loaded: .env (production file)');
+    } else {
+        console.log('[ENV] .env file not found on disk — using environment variables from cloud host (Render/Railway/AWS).');
     }
-    dotenv.config({ path: prodEnvPath });
-    console.log('[ENV] Loaded: .env (production)');
 } else {
     // ── Development: prefer .env.local, fallback to .env ─────────────────────
     const localEnvPath = path.join(serverRoot, '.env.local');

@@ -15,18 +15,18 @@ const { sequelize } = require('./models');
 
 // ─── Production startup validation ───────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
+    process.env.PORT = process.env.PORT || '5000';
+    process.env.FRONTEND_URL = process.env.FRONTEND_URL || process.env.SITE_URL || process.env.CLIENT_URL || 'https://blueeagle.in';
+
     const requiredEnvVars = [
-        'PORT',
         'DB_HOST',
         'DB_NAME',
         'DB_USER',
         'DB_PASS',
         'JWT_SECRET',
         'ADMIN_JWT_SECRET',
-        'FIREBASE_SERVICE_ACCOUNT',
         'ALLOWED_ORIGINS',
         'SITE_URL',
-        'FRONTEND_URL',
     ];
     const missing = requiredEnvVars.filter((key) => !process.env[key]);
     if (missing.length > 0) {
@@ -34,7 +34,7 @@ if (process.env.NODE_ENV === 'production') {
         missing.forEach((key) => {
             console.error(`[STARTUP] Missing required production environment variable: ${key}`);
         });
-        throw new Error(`Server cannot start in production mode with missing environment variables: ${missing.join(', ')}`);
+        throw new Error(`Server cannot start in production mode with missing environment variables in Render/Cloud dashboard: ${missing.join(', ')}`);
     }
 }
 
