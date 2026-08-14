@@ -12,7 +12,7 @@ export default defineConfig({
         // Split large vendor libraries into separate cached chunks
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-charts': ['recharts'],
+          'vendor-charts': ['recharts', 'react-is'],
         },
       },
     },
