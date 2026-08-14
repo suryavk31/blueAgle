@@ -10,8 +10,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 
 const defaultBreakpoints = {
-    0: { slidesPerView: 1.3, spaceBetween: 10 },
-    480: { slidesPerView: 2.2, spaceBetween: 12 },
+    0: { slidesPerView: 2.15, spaceBetween: 10 },
+    480: { slidesPerView: 2.35, spaceBetween: 12 },
     640: { slidesPerView: 3.2, spaceBetween: 14 },
     768: { slidesPerView: 4, spaceBetween: 16 },
     1024: { slidesPerView: 5, spaceBetween: 18 },
@@ -48,7 +48,7 @@ const ProductCarousel = ({
         <section className={`py-6 relative border-b border-gray-100/80 last:border-0 ${className}`}>
             {/* Header Section */}
             {(title || showSeeAll) && (
-                <div className="flex justify-between items-end px-4 sm:px-6 mb-4 md:mb-5">
+                <div className="flex justify-between items-end px-1 sm:px-6 mb-3 md:mb-5">
                     <div>
                         {title && (
                             <h3 className={`font-black text-lg sm:text-xl md:text-2xl tracking-tight ${colorClass}`}>
@@ -75,7 +75,7 @@ const ProductCarousel = ({
             )}
 
             {/* Slider Container with Relative Positioning for Outside Arrows */}
-            <div className="relative group px-4 sm:px-6">
+            <div className="relative group px-1 sm:px-6">
                 {/* Desktop Prev Button */}
                 {showNavigation && (
                     <button

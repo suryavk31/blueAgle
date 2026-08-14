@@ -8,9 +8,12 @@ const { verifyToken, isAdmin } = require('../middleware/authMiddleware'); // kep
 const upload = require('../middleware/uploadMiddleware');
 
 // Public routes
-router.get('/export/csv', exportProductsCSV);
 router.get('/', getProducts);
 router.get('/:id', getProductById);
+
+// Admin routes (RBAC protected)
+router.get('/export/csv', verifyAdminToken, requirePermission('Products', 'Export'), exportProductsCSV);
+
 
 // Admin routes (RBAC protected)
 router.post('/', verifyAdminToken, requirePermission('Products', 'Create'), upload.array('images', 5), createProduct);

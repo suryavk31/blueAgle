@@ -209,7 +209,7 @@ const Checkout = () => {
     const progressPercent = Math.min(100, Math.round((subtotal / deliveryCalculation.freeDeliveryThreshold) * 100));
 
     return (
-        <div className="bg-[#f8fafc] min-h-screen py-8 px-4 md:px-8 font-sans">
+        <div className="bg-[#f8fafc] min-h-screen py-6 px-2 sm:px-4 md:px-8 font-sans">
             <div className="max-w-6xl mx-auto">
 
                 {/* Top Nav / Back */}
@@ -228,7 +228,7 @@ const Checkout = () => {
 
                 {/* Free Shipping Banner */}
                 {deliveryCalculation.freeDeliveryEnabled && (
-                    <div className="mb-6 bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-4 shadow-md border border-purple-800">
+                    <div className="mb-4 bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-3 sm:p-4 shadow-md border border-purple-800">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2.5 text-xs font-extrabold">
                                 <FaGift className="text-amber-400 text-base" />
@@ -259,7 +259,7 @@ const Checkout = () => {
                     <div className="lg:col-span-8 space-y-6">
 
                         {/* 1. Delivery Address */}
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
+                        <div className="bg-white rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center text-[#ff3269] border border-rose-100/50">
@@ -309,7 +309,7 @@ const Checkout = () => {
                         </div>
 
                         {/* 2. Delivery Options */}
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
+                        <div className="bg-white rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100/50">
                                     <FaTruck />
@@ -362,7 +362,7 @@ const Checkout = () => {
                         </div>
 
                         {/* 3. Payment Method */}
-                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
+                        <div className="bg-white rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/50">
                                     <FaCreditCard />
@@ -405,7 +405,7 @@ const Checkout = () => {
 
                     {/* Right Column: Order Summary */}
                     <div className="lg:col-span-4 sticky top-24">
-                        <div className="bg-[#1a1a4e] rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                        <div className="bg-[#1a1a4e] rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
                             <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mb-24 blur-3xl"></div>
 
                             <h2 className="text-xl font-black mb-6 flex items-center gap-2">
@@ -468,7 +468,7 @@ const Checkout = () => {
                         </div>
 
                         {/* Order Items Preview */}
-                        <div className="mt-6 bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm">
+                        <div className="mt-4 bg-white rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 border border-gray-100 shadow-sm">
                             <h3 className="font-black text-gray-800 mb-4 flex items-center gap-2">
                                 Review Items ({itemCount})
                             </h3>

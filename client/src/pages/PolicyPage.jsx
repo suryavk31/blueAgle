@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 import PolicyRenderer from '../components/policy/PolicyRenderer';
 import {
-    FaFileAlt, FaShieldAlt, FaPrint, FaShareAlt, FaClock,
+    FaFileAlt, FaShieldAlt, FaClock,
     FaExclamationCircle, FaListUl, FaQuestionCircle, FaChevronRight,
     FaSearch,
 } from 'react-icons/fa';
@@ -56,21 +56,7 @@ const PolicyPage = () => {
         }));
     }, [policy?.contentJson]);
 
-    const handlePrint = () => {
-        window.print();
-    };
 
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: policy?.title || 'Policy Document',
-                url: window.location.href,
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            toast.info('Policy link copied to clipboard!');
-        }
-    };
 
     return (
         <div className="bg-[#f8fafc] min-h-screen py-10 px-4 md:px-8">
@@ -169,30 +155,10 @@ const PolicyPage = () => {
                             </div>
                         ) : (
                             <div>
-                                {/* Action Bar & Metadata */}
-                                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-6 mb-6">
-                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                                        <FaClock className="text-indigo-500" />
-                                        <span>Last Updated: <strong>{new Date(policy.lastUpdated || policy.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></span>
-                                        <span className="mx-1">•</span>
-                                        <span className="bg-green-50 text-green-700 font-bold px-2.5 py-0.5 rounded-full border border-green-200">
-                                            v{policy.version || 1}.0 Structured JSON
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={handlePrint}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
-                                        >
-                                            <FaPrint /> Print
-                                        </button>
-                                        <button
-                                            onClick={handleShare}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-100 transition-colors"
-                                        >
-                                            <FaShareAlt /> Share
-                                        </button>
-                                    </div>
+                                {/* Metadata */}
+                                <div className="flex items-center gap-2 text-xs text-gray-500 font-medium border-b border-gray-100 pb-4 mb-6">
+                                    <FaClock className="text-indigo-500" />
+                                    <span>Last Updated: <strong>{new Date(policy.lastUpdated || policy.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></span>
                                 </div>
 
                                 {/* Section Search Bar */}

@@ -49,6 +49,7 @@ const DEFAULT_MODULES = [
     // Settings
     { name: 'Settings',      displayName: 'Settings',       slug: 'settings',     route: '/admin/settings',    icon: 'FaCog',           sortOrder: 9,  parentSlug: null },
     { name: 'GaSettings',    displayName: 'Google Analytics Setup', slug: 'ga-settings', route: '/admin/settings/google-analytics', icon: 'FaCog', sortOrder: 1, parentSlug: 'settings' },
+    { name: 'PaymentSettings', displayName: 'Payment & Tax Settings', slug: 'payment-settings', route: '/admin/settings/payment', icon: 'FaCreditCard', sortOrder: 2, parentSlug: 'settings' },
     // Administration group
     { name: 'Administration', displayName: 'Administration', slug: 'administration', route: null,              icon: 'FaShieldAlt',     sortOrder: 9,  parentSlug: null },
     { name: 'Modules',       displayName: 'Modules',        slug: 'modules',      route: '/admin/rbac/modules',          icon: 'FaCubes',     sortOrder: 1,  parentSlug: 'administration' },

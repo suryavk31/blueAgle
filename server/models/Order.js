@@ -55,6 +55,53 @@ const Order = sequelize.define('Order', {
         type: DataTypes.ENUM('COD', 'Online'),
         defaultValue: 'Online',
     },
+
+    // ─── Financial Accounting Snapshots ───────────────────────────────────────
+    paymentGatewayFeeRate: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    paymentGatewayFee: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    paymentGatewayGstRate: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    paymentGatewayGst: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    tdsRate: {
+        type: DataTypes.DECIMAL(5, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    tdsAmount: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    productCogs: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    totalBusinessDeductions: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
+    netProfit: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
 }, {
     timestamps: true,
 });

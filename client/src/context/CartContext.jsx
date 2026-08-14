@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { toast } from 'react-toastify';
 
 const CartContext = createContext();
 
@@ -51,7 +50,6 @@ export const CartProvider = ({ children }) => {
                 quantity: qty,
             }];
         });
-        toast.success(`${product.name} added to cart`);
     }, []);
 
     // Update quantity directly

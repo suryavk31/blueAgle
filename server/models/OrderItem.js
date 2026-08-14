@@ -11,6 +11,11 @@ const OrderItem = sequelize.define('OrderItem', {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
     },
+    costPriceSnapshot: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        allowNull: false,
+    },
     quantity: {
         type: DataTypes.INTEGER,
         allowNull: false,

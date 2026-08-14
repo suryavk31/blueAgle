@@ -18,7 +18,10 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT:", e.message);
     }
 } else {
-    console.warn('FIREBASE_SERVICE_ACCOUNT environment variable not set. Real token verification requires credentials.');
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('FIREBASE_SERVICE_ACCOUNT must be set in production.');
+    }
+    console.warn('FIREBASE_SERVICE_ACCOUNT not set — running in dev mode with unverified token fallback.');
 }
 
 const parseJwtPayload = (token) => {
@@ -40,23 +43,13 @@ const verifyToken = async (req, res, next) => {
         return res.status(401).json({ message: 'No token provided' });
     }
 
-    if (token === 'mock-staff-token') {
-        req.user = {
-            uid: '1',
-            phone_number: '9999999999',
-            phone: '9999999999',
-            email: 'admin@blueeagle.com',
-            role: 'admin'
-        };
-        return next();
-    }
-
     try {
         if (admin.apps.length > 0) {
             const decodedToken = await admin.auth().verifyIdToken(token);
             req.user = decodedToken;
         } else {
-            // Dev Fallback: Decode Firebase JWT payload directly if service account is not configured
+            // Dev-only fallback: decode without signature verification.
+            // Never reached in production (server startup throws above).
             const decodedPayload = parseJwtPayload(token);
             if (!decodedPayload) {
                 return res.status(401).json({ message: 'Invalid token structure' });
@@ -96,10 +89,7 @@ const isAdmin = async (req, res, next) => {
             user = await User.findOne({ where: { [Op.or]: orConditions } });
         }
 
-        if (!user) {
-            user = await User.findOne({ where: { role: 'admin' } });
-        }
-
+        // Strict: no fallback — if user not found, deny access
         if (!user || user.role !== 'admin') {
             return res.status(403).json({ message: 'Access denied. Admins only.' });
         }
@@ -113,4 +103,3 @@ const isAdmin = async (req, res, next) => {
 
 
 module.exports = { verifyToken, isAdmin };
-

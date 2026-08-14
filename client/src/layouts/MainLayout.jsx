@@ -11,7 +11,7 @@ const MainLayout = () => {
     return (
         <div className="bg-gray-50 flex flex-col min-h-screen pb-16 md:pb-0"> {/* Padding bottom for mobile nav */}
             <Navbar onCartClick={() => setCartOpen(true)} />
-            <div className="flex-grow container mx-auto px-4 py-8">
+            <div className="flex-grow container mx-auto px-2 sm:px-4 py-3 sm:py-8">
                 <Outlet />
             </div>
             <Footer />

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useCategories } from '../context/CategoryContext';
-import { FaSearch, FaShoppingCart, FaUser, FaChevronDown } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaUser, FaChevronDown, FaTimes } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 import api from '../services/api';
 
@@ -128,71 +128,84 @@ const Navbar = ({ onCartClick }) => {
         if (!showSuggestions) return null;
 
         return (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 z-[200] overflow-hidden max-h-[400px] overflow-y-auto">
-                {loadingSuggestions ? (
-                    <div className="flex items-center justify-center py-6">
-                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#3c006b]"></div>
-                        <span className="ml-3 text-sm text-gray-400">Searching...</span>
-                    </div>
-                ) : suggestions.length === 0 ? (
-                    <div className="py-6 text-center">
-                        <div className="text-2xl mb-1">🔍</div>
-                        <p className="text-sm text-gray-400">No products found for "{search}"</p>
-                    </div>
-                ) : (
-                    <>
-                        {suggestions.map((product, idx) => {
-                            const price = parseFloat(product.price);
-                            const mrp = Math.round(price * 1.2);
-                            return (
-                                <button
-                                    type="button"
-                                    key={product.id}
-                                    onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleSuggestionClick(product.id);
-                                    }}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        handleSuggestionClick(product.id);
-                                    }}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-purple-50 transition-colors text-left ${idx > 0 ? 'border-t border-gray-50' : ''}`}
-                                >
-                                    <div className="w-11 h-11 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100">
-                                        {product.images?.[0] ? (
-                                            <img src={getImageUrl(product.images[0])} alt="" className="w-full h-full object-contain mix-blend-multiply" />
-                                        ) : (
-                                            <span className="text-gray-300 text-[10px]">N/A</span>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-800 truncate">{product.name}</p>
-                                        <p className="text-xs text-gray-400 truncate">{product.description || '1 pack'}</p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <div className="text-sm font-bold text-[#1a7428]">₹{price}</div>
-                                        <div className="text-[10px] text-gray-400 line-through">₹{mrp}</div>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                        <button
-                            type="button"
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleSearch(e);
-                            }}
-                            onClick={handleSearch}
-                            className="w-full py-3 text-center text-sm font-bold text-[#3c006b] bg-purple-50 hover:bg-purple-100 transition-colors border-t border-gray-100"
-                        >
-                            View all results for "{search}"
-                        </button>
-                    </>
-                )}
-            </div>
+            <>
+                {/* Mobile backdrop to dismiss search on tap outside */}
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[180] md:hidden"
+                    onClick={() => setShowSuggestions(false)}
+                />
+
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[200] overflow-hidden max-h-[60vh] md:max-h-[400px] overflow-y-auto">
+                    {loadingSuggestions ? (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#3c006b]"></div>
+                            <span className="ml-3 text-sm text-gray-400 font-medium">Searching products...</span>
+                        </div>
+                    ) : suggestions.length === 0 ? (
+                        <div className="py-8 text-center px-4">
+                            <div className="text-2xl mb-1">🔍</div>
+                            <p className="text-sm font-semibold text-gray-700">No products found</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Try searching with a different keyword</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="px-4 py-2 bg-gray-50/80 border-b border-gray-100 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+                                Suggestions ({suggestions.length})
+                            </div>
+                            {suggestions.map((product, idx) => {
+                                const price = parseFloat(product.price);
+                                const mrp = Math.round(price * 1.2);
+                                return (
+                                    <button
+                                        type="button"
+                                        key={product.id}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSuggestionClick(product.id);
+                                        }}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleSuggestionClick(product.id);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-purple-50/60 active:bg-purple-100/60 transition-colors text-left ${idx > 0 ? 'border-t border-gray-50' : ''}`}
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 border border-gray-100 p-1">
+                                            {product.images?.[0] ? (
+                                                <img src={getImageUrl(product.images[0])} alt="" className="w-full h-full object-contain mix-blend-multiply" />
+                                            ) : (
+                                                <span className="text-gray-300 text-[10px]">N/A</span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-bold text-gray-800 truncate">{product.name}</p>
+                                            <p className="text-xs text-gray-400 truncate">{product.shortDescription || product.description || '1 pack'}</p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <div className="text-sm font-extrabold text-[#1a7428]">₹{price}</div>
+                                            <div className="text-[10px] text-gray-400 line-through">₹{mrp}</div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            <button
+                                type="button"
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleSearch(e);
+                                }}
+                                onClick={handleSearch}
+                                className="w-full py-3 text-center text-xs font-extrabold text-[#3c006b] bg-purple-50/80 hover:bg-purple-100 transition-colors border-t border-gray-100 flex items-center justify-center gap-1.5"
+                            >
+                                <FaSearch className="text-[11px]" />
+                                <span>View all results for "{search}"</span>
+                            </button>
+                        </>
+                    )}
+                </div>
+            </>
         );
     };
 
@@ -200,34 +213,45 @@ const Navbar = ({ onCartClick }) => {
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-xs">
             {/* Top Navigation Bar */}
             <div className="bg-white border-b border-gray-100">
-                <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-6">
+                <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-6">
 
-                    {/* Left: Logo */}
+                    {/* Left: Logo + Brand Name */}
                     <div className="flex items-center shrink-0">
                         <Link to="/" className="flex items-center gap-2 shrink-0">
-                            <img src="/logo.png" alt="BlueAgle" className="h-9 w-9 rounded-lg object-contain" />
-                            <span className="text-2xl font-extrabold text-[#3c006b] tracking-tight hidden sm:block">Blue<span className="text-[#ff3269]">Agle</span></span>
+                            <img src="/logo.png" alt="BlueAgle" className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg object-contain" />
+                            <span className="text-xl sm:text-2xl font-extrabold text-[#3c006b] tracking-tight block">
+                                Blue<span className="text-[#ff3269]">Agle</span>
+                            </span>
                         </Link>
                     </div>
 
                     {/* Center: Search Bar (Desktop) */}
                     <form onSubmit={handleSearch} className="flex-grow max-w-2xl hidden md:flex relative" ref={desktopSearchRef}>
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                            <FaSearch className="text-gray-400" />
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+                            <FaSearch className="text-gray-400 text-sm" />
                         </div>
                         <input
                             type="text"
                             placeholder='Search for oils, groundnuts, combos...'
-                            className="w-full bg-gray-50 border border-transparent focus:border-gray-200 text-gray-900 text-sm rounded-lg block pl-10 p-2.5 focus:outline-none focus:bg-white shadow-sm transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 focus:border-[#3c006b] text-gray-900 text-sm rounded-xl block pl-10 pr-10 p-2.5 focus:outline-none focus:bg-white shadow-xs transition-all"
                             value={search}
                             onChange={handleSearchChange}
                             onFocus={() => { if (suggestions.length > 0 || search.trim()) setShowSuggestions(true); }}
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearch(''); setSuggestions([]); setShowSuggestions(false); }}
+                                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 z-10"
+                            >
+                                <FaTimes className="text-xs" />
+                            </button>
+                        )}
                         <SuggestionDropdown />
                     </form>
 
                     {/* Right: Auth & Cart */}
-                    <div className="flex items-center gap-6 shrink-0">
+                    <div className="flex items-center gap-4 sm:gap-6 shrink-0">
                         {currentUser ? (
                             <Link to="/profile" className="hidden md:flex flex-col items-center text-gray-600 hover:text-[#3c006b]">
                                 <FaUser className="text-xl mb-1" />
@@ -237,32 +261,52 @@ const Navbar = ({ onCartClick }) => {
                             <Link to="/login" className="hidden md:block font-bold text-gray-600 hover:text-[#3c006b]">Login</Link>
                         )}
 
-                        <button onClick={onCartClick} className="flex flex-col items-center text-gray-600 hover:text-[#3c006b] relative">
-                            <div className="relative">
-                                <FaShoppingCart className="text-xl mb-1" />
-                                {itemCount > 0 && <span className="absolute -top-2 -right-2 bg-[#ff3269] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{itemCount}</span>}
+                        {/* Cart: Icon only on mobile, Icon + text on desktop */}
+                        <button
+                            onClick={onCartClick}
+                            className="flex flex-col items-center justify-center text-gray-700 hover:text-[#3c006b] relative p-1.5 md:p-0 transition-colors"
+                            aria-label="Shopping Cart"
+                        >
+                            <div className="relative flex items-center justify-center">
+                                <FaShoppingCart className="text-xl sm:text-2xl md:text-xl md:mb-1 text-[#3c006b]" />
+                                {itemCount > 0 && (
+                                    <span className="absolute -top-2 -right-2.5 bg-[#ff3269] text-white text-[9px] font-black min-w-[17px] h-[17px] rounded-full flex items-center justify-center px-1 shadow-xs">
+                                        {itemCount > 99 ? '99+' : itemCount}
+                                    </span>
+                                )}
                             </div>
-                            <span className="text-xs font-bold">Cart</span>
+                            <span className="text-xs font-bold hidden md:block">Cart</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Bottom Row: Mobile Search & Categories Nav */}
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-2.5 sm:px-4">
                 {/* Mobile Search */}
-                <div className="md:hidden py-3">
+                <div className="md:hidden py-2.5">
                     <div className="relative" ref={mobileSearchRef}>
                         <form onSubmit={handleSearch} className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+                                <FaSearch className="text-gray-400 text-sm" />
+                            </div>
                             <input
                                 type="text"
                                 placeholder="Search for items..."
-                                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2 pl-10 focus:outline-none"
+                                className="w-full bg-gray-50 border border-gray-200 focus:border-[#3c006b] rounded-xl py-2 pl-10 pr-10 text-sm font-medium focus:outline-none focus:bg-white shadow-xs transition-all"
                                 value={search}
                                 onChange={handleSearchChange}
                                 onFocus={() => { if (suggestions.length > 0 || search.trim()) setShowSuggestions(true); }}
                             />
-                            <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setSearch(''); setSuggestions([]); setShowSuggestions(false); }}
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 z-10"
+                                >
+                                    <FaTimes className="text-xs" />
+                                </button>
+                            )}
                         </form>
                         <SuggestionDropdown />
                     </div>

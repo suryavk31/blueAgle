@@ -356,7 +356,7 @@ const Orders = () => {
                                         {/* Financial Breakdown */}
                                          <div className="bg-slate-50/70 rounded-2xl p-4 sm:p-5 border border-slate-100 flex flex-col gap-2">
                                              <h5 className="font-extrabold text-xs text-gray-500 uppercase tracking-wider mb-1">
-                                                 Order Summary Breakdown
+                                                 Customer Payable Summary
                                              </h5>
                                              <div className="flex justify-between text-xs text-gray-600 font-medium">
                                                  <span>Items Subtotal</span>
@@ -377,11 +377,62 @@ const Orders = () => {
                                                  </div>
                                              )}
                                              <div className="border-t border-gray-200/80 pt-2 flex justify-between text-sm sm:text-base font-black text-gray-900">
-                                                 <span>Total Amount Paid</span>
+                                                 <span>Total Amount Paid by Customer</span>
                                                  <span className="text-indigo-600">₹{parseFloat(selectedOrder.totalAmount).toFixed(2)}</span>
                                              </div>
                                          </div>
-                                    </div>
+
+                                         {/* Internal Business Accounting Breakdown */}
+                                         <div className="bg-indigo-50/40 rounded-2xl p-4 sm:p-5 border border-indigo-100/70 flex flex-col gap-2">
+                                             <div className="flex items-center justify-between border-b border-indigo-100 pb-2">
+                                                 <h5 className="font-black text-xs text-indigo-900 uppercase tracking-wider">
+                                                     Internal Business Accounting Summary
+                                                 </h5>
+                                                 <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+                                                     Admin Internal
+                                                 </span>
+                                             </div>
+
+                                             <div className="flex justify-between text-xs text-gray-600 font-medium">
+                                                 <span>Order Value (Gross Total)</span>
+                                                 <span className="font-bold text-gray-900">₹{parseFloat(selectedOrder.totalAmount || 0).toFixed(2)}</span>
+                                             </div>
+                                             <div className="flex justify-between text-xs text-gray-600 font-medium">
+                                                 <span>Product COGS (Cost of Goods)</span>
+                                                 <span className="font-bold text-slate-700">₹{parseFloat(selectedOrder.productCogs || 0).toFixed(2)}</span>
+                                             </div>
+                                             <div className="flex justify-between text-xs text-gray-600 font-medium">
+                                                 <span>Payment Method</span>
+                                                 <span className="font-extrabold text-indigo-700">{selectedOrder.paymentMethod || 'Online'}</span>
+                                             </div>
+
+                                             <div className="border-t border-indigo-100/80 pt-2 space-y-1.5 text-xs text-gray-600">
+                                                 <div className="flex justify-between font-medium">
+                                                     <span>Payment Gateway Fee ({parseFloat(selectedOrder.paymentGatewayFeeRate || 0).toFixed(2)}%)</span>
+                                                     <span className="font-bold text-slate-800">₹{parseFloat(selectedOrder.paymentGatewayFee || 0).toFixed(2)}</span>
+                                                 </div>
+                                                 <div className="flex justify-between font-medium">
+                                                     <span>GST on Gateway Fee ({parseFloat(selectedOrder.paymentGatewayGstRate || 0).toFixed(2)}%)</span>
+                                                     <span className="font-bold text-slate-800">₹{parseFloat(selectedOrder.paymentGatewayGst || 0).toFixed(2)}</span>
+                                                 </div>
+                                                 <div className="flex justify-between font-medium">
+                                                     <span>TDS Section 194O ({parseFloat(selectedOrder.tdsRate || 0).toFixed(2)}%)</span>
+                                                     <span className="font-bold text-slate-800">₹{parseFloat(selectedOrder.tdsAmount || 0).toFixed(2)}</span>
+                                                 </div>
+                                                 <div className="flex justify-between font-extrabold text-purple-900 pt-1">
+                                                     <span>Total Business Deductions</span>
+                                                     <span>₹{parseFloat(selectedOrder.totalBusinessDeductions || 0).toFixed(2)}</span>
+                                                 </div>
+                                             </div>
+
+                                             <div className="border-t border-indigo-200/80 pt-2 flex justify-between text-sm font-black">
+                                                 <span className="text-gray-900">Net Profit (before operating costs)</span>
+                                                 <span className={parseFloat(selectedOrder.netProfit || 0) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                                                     ₹{parseFloat(selectedOrder.netProfit || 0).toFixed(2)}
+                                                 </span>
+                                             </div>
+                                         </div>
+                                     </div>
 
                                     {/* Right Column: Customer Details & Fulfillment update */}
                                     <div className="space-y-4">

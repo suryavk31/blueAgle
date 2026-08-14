@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
-import { FaShare, FaTruck, FaStar, FaMinus, FaPlus, FaCheck, FaUtensils, FaLeaf } from 'react-icons/fa';
+import { FaShare, FaTruck, FaStar, FaMinus, FaPlus, FaCheck, FaUtensils, FaLeaf, FaArrowLeft } from 'react-icons/fa';
 import { getImageUrl } from '../utils/imageHelper';
 import ProductCarousel from '../components/ProductCarousel';
 
@@ -84,8 +84,8 @@ const ProductDetail = () => {
     return (
         <div className="bg-[#f8fafc] min-h-screen pb-24 md:pb-12 text-slate-800 font-sans">
 
-            {/* Breadcrumb */}
-            <div className="container mx-auto px-4 py-4 text-xs text-slate-500">
+            {/* Breadcrumb (Desktop only) */}
+            <div className="container mx-auto px-4 py-4 text-xs text-slate-500 hidden md:block">
                 <Link to="/" className="hover:text-indigo-600 font-medium">Home</Link>
                 {product.SubCategory?.Category?.name && (
                     <>
@@ -103,14 +103,25 @@ const ProductDetail = () => {
                 <span className="font-bold text-slate-900">{product.name}</span>
             </div>
 
-            <div className="container mx-auto px-4 max-w-6xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12 mb-8">
+            <div className="container mx-auto px-2 sm:px-4 max-w-6xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-12 mb-8">
 
-                    {/* Left: Media Gallery */}
-                    <div className="flex flex-col gap-4">
-                        <div className="bg-white rounded-3xl p-6 shadow-xs border border-slate-100 relative overflow-hidden">
+                    {/* Left: Full-width Edge-to-Edge Media Gallery (Mobile) */}
+                    <div className="flex flex-col gap-3 -mx-2 -mt-3 sm:mx-0 sm:mt-0">
+                        <div className="bg-white sm:rounded-3xl p-2 sm:p-6 shadow-none sm:shadow-xs border-b sm:border border-slate-100 relative overflow-hidden">
+                            {/* Floating Overlay Back Button (Mobile Only) */}
+                            <div className="absolute top-3 left-3 z-20 flex items-center gap-2 sm:hidden">
+                                <button
+                                    onClick={() => navigate(-1)}
+                                    title="Go back"
+                                    className="w-10 h-10 bg-white/95 backdrop-blur-md rounded-full shadow-md flex items-center justify-center text-slate-700 hover:text-[#3c006b] active:scale-95 transition-all border border-slate-100"
+                                >
+                                    <FaArrowLeft size={14} />
+                                </button>
+                            </div>
+
                             {/* Badges Container */}
-                            <div className="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10 max-w-[80%]">
+                            <div className="absolute top-16 sm:top-4 left-3 sm:left-4 flex flex-wrap gap-1.5 z-10 max-w-[70%]">
                                 {product.isBestSeller && (
                                     <span className="bg-amber-500 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">Best Seller</span>
                                 )}
@@ -124,28 +135,50 @@ const ProductDetail = () => {
                                 ))}
                             </div>
 
-                            <div className="absolute top-4 right-4 flex flex-col gap-2.5 z-10">
+                            {/* Floating Share Button */}
+                            <div className="absolute top-3 right-3 z-20">
                                 <button
                                     onClick={handleShare}
                                     title="Share product link"
-                                    className="w-10 h-10 bg-white/90 backdrop-blur rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors border border-slate-100"
+                                    className="w-10 h-10 bg-white/95 backdrop-blur-md rounded-full shadow-md flex items-center justify-center text-slate-700 hover:text-[#3c006b] active:scale-95 transition-all border border-slate-100"
                                 >
-                                    <FaShare />
+                                    <FaShare size={14} />
                                 </button>
                             </div>
 
-                            <div className="w-full h-80 md:h-[460px] flex items-center justify-center">
+                            {/* Main Product Image — Full Width Edge-to-Edge */}
+                            <div className="w-full h-80 sm:h-96 md:h-[460px] flex items-center justify-center py-4">
                                 {selectedImage ? (
-                                    <img src={getImageUrl(selectedImage)} alt={product.name} className="w-full h-full object-contain mix-blend-multiply transition-transform hover:scale-105 duration-500" />
+                                    <img
+                                        src={getImageUrl(selectedImage)}
+                                        alt={product.name}
+                                        className="w-full h-full object-contain mix-blend-multiply transition-transform hover:scale-105 duration-500"
+                                    />
                                 ) : (
                                     <div className="text-slate-300 text-sm font-medium">No Image Available</div>
                                 )}
                             </div>
+
+                            {/* Floating Pagination Dots for Mobile */}
+                            {product.images && product.images.length > 1 && (
+                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 sm:hidden bg-slate-900/20 backdrop-blur-md px-2.5 py-1 rounded-full">
+                                    {product.images.map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setSelectedImage(img)}
+                                            className={`h-1.5 rounded-full transition-all ${
+                                                selectedImage === img ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
+                                            }`}
+                                            aria-label={`View Image ${idx + 1}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Thumbnail Selector */}
+                        {/* Desktop Thumbnail Selector */}
                         {product.images && product.images.length > 1 && (
-                            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+                            <div className="hidden sm:flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none px-2 sm:px-0">
                                 {product.images.map((img, idx) => (
                                     <button
                                         key={idx}
@@ -162,7 +195,7 @@ const ProductDetail = () => {
                     </div>
 
                     {/* Right: Product Info & Actions */}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col px-2 sm:px-0">
                         {product.brand && (
                             <div className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">
                                 {product.brand}
@@ -174,16 +207,13 @@ const ProductDetail = () => {
                         </h1>
 
                         {/* Rating & Review Info */}
-                        <div className="flex items-center gap-4 mb-4">
+                        <div className="flex items-center gap-3 mb-4">
                             {unit && <div className="text-xs text-slate-500 font-bold bg-slate-100 px-2.5 py-1 rounded-lg">{unit}</div>}
                             {parseFloat(product.rating) > 0 ? (
                                 <div className="flex items-center text-amber-500 text-xs font-bold gap-1 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/60">
                                     <FaStar /> <span>{parseFloat(product.rating).toFixed(1)} ({product.reviewCount || 0} reviews)</span>
                                 </div>
                             ) : null}
-                            {product.sku && (
-                                <div className="text-xs text-slate-400 font-mono">SKU: {product.sku}</div>
-                            )}
                         </div>
 
                         <hr className="border-slate-200/60 mb-5" />
@@ -211,25 +241,25 @@ const ProductDetail = () => {
                         {/* Dynamic Trust Badges / Highlights */}
                         <ProductHighlights highlights={product.highlights} />
 
-                        {/* Action Buttons */}
-                        <div className="hidden md:flex gap-4 mb-6">
+                        {/* Action Buttons (In-flow) */}
+                        <div className="flex gap-4 mb-6">
                             {quantity === 0 ? (
                                 <button
                                     onClick={handleAddToCart}
                                     disabled={product.stock <= 0}
-                                    className="flex-grow bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-extrabold py-3.5 px-8 rounded-2xl shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-2 transform active:scale-95 disabled:opacity-50"
+                                    className="flex-grow bg-gradient-to-r from-pink-600 to-[#ff3269] hover:from-pink-700 hover:to-[#e62e5c] text-white font-extrabold py-3.5 px-8 rounded-2xl shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-2 transform active:scale-95 disabled:opacity-50"
                                 >
                                     <FaTruck className="text-sm" />
-                                    {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                                    <span>{product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
                                 </button>
                             ) : (
                                 <>
-                                    <div className="flex items-center border border-rose-500 rounded-2xl bg-white overflow-hidden shadow-xs">
-                                        <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-12 h-12 text-rose-600 font-bold hover:bg-rose-50 flex items-center justify-center"><FaMinus /></button>
-                                        <span className="w-12 h-12 flex items-center justify-center font-bold text-rose-600 bg-rose-50/50">{quantity}</span>
-                                        <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-12 h-12 text-rose-600 font-bold hover:bg-rose-50 flex items-center justify-center"><FaPlus /></button>
+                                    <div className="flex items-center border-2 border-rose-500 rounded-2xl bg-white overflow-hidden shadow-xs">
+                                        <button onClick={() => updateQuantity(product.id, quantity - 1)} className="w-12 h-12 text-rose-600 font-extrabold hover:bg-rose-50 flex items-center justify-center transition-colors"><FaMinus size={12} /></button>
+                                        <span className="w-12 h-12 flex items-center justify-center font-black text-rose-600 bg-rose-50/60 text-base">{quantity}</span>
+                                        <button onClick={() => updateQuantity(product.id, quantity + 1)} className="w-12 h-12 text-rose-600 font-extrabold hover:bg-rose-50 flex items-center justify-center transition-colors"><FaPlus size={12} /></button>
                                     </div>
-                                    <div className="flex-grow bg-slate-900 text-white font-extrabold py-3.5 px-8 rounded-2xl shadow-md flex items-center justify-center gap-2">
+                                    <div className="flex-grow bg-slate-900 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2">
                                         <span>₹{(price * quantity).toFixed(0)} in Cart</span>
                                     </div>
                                 </>
@@ -303,30 +333,42 @@ const ProductDetail = () => {
                 )}
             </div>
 
-            {/* Mobile Sticky Action Bar */}
-            <div className="md:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-slate-200 p-3 flex gap-3 z-40 shadow-lg">
-                {quantity === 0 ? (
-                    <button
-                        onClick={handleAddToCart}
-                        disabled={product.stock <= 0}
-                        className="flex-grow bg-rose-600 text-white font-extrabold rounded-xl shadow-md flex flex-col items-center justify-center leading-tight py-3"
-                    >
-                        <span className="text-sm">{product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-                        <span className="text-[10px] opacity-90">₹{price}</span>
-                    </button>
-                ) : (
-                    <>
-                        <div className="flex items-center border border-rose-500 rounded-xl bg-white overflow-hidden">
-                            <button onClick={() => updateQuantity(product.id, quantity - 1)} className="px-3 py-3 text-rose-600 font-bold"><FaMinus size={12} /></button>
-                            <span className="w-8 text-center font-bold text-sm text-rose-600 bg-rose-50 py-3">{quantity}</span>
-                            <button onClick={() => updateQuantity(product.id, quantity + 1)} className="px-3 py-3 text-rose-600 font-bold"><FaPlus size={12} /></button>
+            {/* Mobile Sticky Bottom Action Bar (Pinned cleanly to bottom-0) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-3 z-40 shadow-2xl pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-xl font-black text-slate-900">₹{price}</span>
+                        {mrp > price && (
+                            <span className="text-xs text-slate-400 line-through">₹{mrp}</span>
+                        )}
+                    </div>
+                    {savings > 0 ? (
+                        <span className="text-[10px] font-extrabold text-emerald-600">
+                            Save ₹{savings} ({discountPercent}% OFF)
+                        </span>
+                    ) : unit ? (
+                        <span className="text-[10px] text-slate-400 truncate">{unit}</span>
+                    ) : null}
+                </div>
+
+                <div className="shrink-0">
+                    {quantity === 0 ? (
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={product.stock <= 0}
+                            className="bg-gradient-to-r from-pink-600 to-[#ff3269] hover:from-pink-700 hover:to-[#e62e5c] text-white font-extrabold text-xs py-2.5 px-6 rounded-xl shadow-md shadow-rose-500/20 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                            <FaPlus size={10} />
+                            <span>{product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+                        </button>
+                    ) : (
+                        <div className="flex items-center border-2 border-rose-500 rounded-xl bg-white overflow-hidden shadow-xs">
+                            <button onClick={() => updateQuantity(product.id, quantity - 1)} className="px-3 py-2 text-rose-600 font-extrabold active:bg-rose-50"><FaMinus size={10} /></button>
+                            <span className="w-8 text-center font-black text-xs text-rose-600 bg-rose-50/60 py-2">{quantity}</span>
+                            <button onClick={() => updateQuantity(product.id, quantity + 1)} className="px-3 py-2 text-rose-600 font-extrabold active:bg-rose-50"><FaPlus size={10} /></button>
                         </div>
-                        <div className="flex-grow bg-slate-900 text-white font-bold rounded-xl shadow-md flex flex-col items-center justify-center leading-tight py-2">
-                            <span className="text-sm">₹{(price * quantity).toFixed(0)} in Cart</span>
-                            <span className="text-[10px] opacity-70">{quantity} item{quantity > 1 ? 's' : ''}</span>
-                        </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

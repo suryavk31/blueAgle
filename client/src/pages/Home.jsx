@@ -49,9 +49,9 @@ const Home = () => {
 
             <div className="container mx-auto max-w-7xl">
                 {/* Categories - Bento Style */}
-                <section className="px-4 py-8">
+                <section className="px-1 sm:px-4 py-4 sm:py-8">
                     <h3 className="font-bold text-lg text-gray-400 uppercase tracking-widest mb-4 text-[11px]">Shop by Category</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
+                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3 md:gap-4">
                         {categories.slice(0, 16).map((cat, index) => (
                             <Link key={cat.id} to={`/products?category=${cat.id}`} className="flex flex-col items-center gap-2 group cursor-pointer">
                                 <div className="w-full aspect-square rounded-[20px] flex items-center justify-center p-3 shadow-sm border border-transparent hover:border-[#3c006b]/20 transition-all group-hover:shadow-md relative overflow-hidden bg-white">
@@ -81,7 +81,7 @@ const Home = () => {
 
                 {/* Middle Banner */}
                 {middleBanners.length > 0 && (
-                    <div className="px-4 sm:px-6 py-4">
+                    <div className="px-1 sm:px-6 py-3 sm:py-4">
                         <AdComponent ad={middleBanners[0]} className="w-full h-32 md:h-56 object-cover rounded-2xl shadow-sm" />
                     </div>
                 )}

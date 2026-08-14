@@ -1,7 +1,19 @@
 node_modules/
 **/node_modules/
+
+# ── Environment files (NEVER commit these) ────────────────────────────────────
 .env
 *.env
 **/.env
+.env.local
+**/.env.local
+
+# ── Credentials & Secret files ────────────────────────────────────────────────
 server/serviceAccountKey.json
+*serviceAccount*.json
+*service_account*.json
+*.pem
+*.key
+*.p12
+*.pfx
 

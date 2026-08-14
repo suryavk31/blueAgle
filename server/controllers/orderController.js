@@ -1,8 +1,11 @@
 const { Order, OrderItem, Product, Coupon, Cart, CartItem, User, Ad, AdAnalytics, sequelize } = require('../models');
 const { getOrInitDeliverySettings } = require('./deliveryController');
+const { getOrInitPaymentSettings } = require('./paymentSettingController');
 const razorpay = require('../config/razorpay');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
+
+const roundMoney = (num) => Math.round((parseFloat(num || 0) + Number.EPSILON) * 100) / 100;
 
 const findOrCreateOrderUser = async (reqUser, transaction = null) => {
     if (!reqUser) return null;
@@ -41,9 +44,10 @@ const findOrCreateOrderUser = async (reqUser, transaction = null) => {
     return user;
 };
 
-// ─── Helper for Authoritative Pricing & Delivery Calculation ────────────────
-const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMethodRequested = 'Standard', transaction = null) => {
+// ─── Helper for Authoritative Pricing, Financial Deductions & COGS ───────────
+const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMethodRequested = 'Standard', paymentMethod = 'Online', transaction = null) => {
     let subtotal = 0;
+    let productCogs = 0;
     const processedItems = [];
 
     for (const item of cartItems) {
@@ -52,9 +56,23 @@ const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMeth
         if (!product) continue;
 
         const price = parseFloat(product.price);
+        const costPriceSnapshot = parseFloat(product.costPrice || 0.00);
         const qty = item.quantity || 1;
-        subtotal += price * qty;
-        processedItems.push({ product, quantity: qty, price });
+
+        const itemSubtotal = roundMoney(price * qty);
+        const itemCogs = roundMoney(costPriceSnapshot * qty);
+
+        subtotal = roundMoney(subtotal + itemSubtotal);
+        productCogs = roundMoney(productCogs + itemCogs);
+
+        processedItems.push({
+            product,
+            quantity: qty,
+            price,
+            costPriceSnapshot,
+            itemSubtotal,
+            itemCogs,
+        });
     }
 
     // Coupon calculation
@@ -63,15 +81,15 @@ const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMeth
         const coupon = await Coupon.findOne({ where: { code: couponCode, isActive: true }, transaction });
         if (coupon && new Date(coupon.expiryDate) >= new Date()) {
             if (coupon.discountType === 'percentage') {
-                discountAmount = (subtotal * parseFloat(coupon.value)) / 100;
+                discountAmount = roundMoney((subtotal * parseFloat(coupon.value)) / 100);
             } else {
-                discountAmount = parseFloat(coupon.value);
+                discountAmount = roundMoney(parseFloat(coupon.value));
             }
             if (discountAmount > subtotal) discountAmount = subtotal;
         }
     }
 
-    const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+    const discountedSubtotal = Math.max(0, roundMoney(subtotal - discountAmount));
 
     // Delivery calculation
     const deliveryRules = await getOrInitDeliverySettings();
@@ -89,9 +107,40 @@ const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMeth
     } else {
         deliveryCharge = stdCharge;
     }
+    deliveryCharge = roundMoney(deliveryCharge);
 
     const taxAmount = 0.00;
-    const totalAmount = Math.max(0, discountedSubtotal + taxAmount + deliveryCharge);
+    const totalAmount = Math.max(0, roundMoney(discountedSubtotal + taxAmount + deliveryCharge));
+
+    // ─── Financial Accounting Deductions (Internal) ──────────────────────────
+    const transactionBase = totalAmount; // Customer Payable Amount
+    const paymentSettings = await getOrInitPaymentSettings(transaction);
+    // console.log("paymentSettings keys:", paymentSettings ? paymentSettings.toJSON() : null);
+
+    let paymentGatewayFeeRate = 0.00;
+    let paymentGatewayFee = 0.00;
+    let paymentGatewayGstRate = 0.00;
+    let paymentGatewayGst = 0.00;
+
+    const isOnlinePayment = paymentMethod === 'Online' || paymentMethod === 'Razorpay';
+    const parseRate = (val, fallback) => {
+        const num = parseFloat(val);
+        return isNaN(num) ? fallback : num;
+    };
+
+    const tdsRate = parseRate(paymentSettings?.tdsPercentage, 1.00);
+    const tdsAmount = roundMoney(transactionBase * (tdsRate / 100));
+
+    if (isOnlinePayment) {
+        paymentGatewayFeeRate = parseRate(paymentSettings?.paymentGatewayFeePercentage, 2.00);
+        paymentGatewayFee = roundMoney(transactionBase * (paymentGatewayFeeRate / 100));
+
+        paymentGatewayGstRate = parseRate(paymentSettings?.paymentGatewayFeeGstPercentage, 18.00);
+        paymentGatewayGst = roundMoney(paymentGatewayFee * (paymentGatewayGstRate / 100));
+    }
+
+    const totalBusinessDeductions = roundMoney(paymentGatewayFee + paymentGatewayGst + tdsAmount);
+    const netProfit = roundMoney(totalAmount - productCogs - totalBusinessDeductions);
 
     return {
         subtotal,
@@ -100,7 +149,18 @@ const calculateOrderPricingInternal = async (cartItems, couponCode, deliveryMeth
         taxAmount,
         totalAmount,
         deliveryMethod: isExpress ? 'Express' : 'Standard',
-        processedItems
+        processedItems,
+        // Financial Accounting Snapshots
+        paymentMethod: isOnlinePayment ? 'Online' : 'COD',
+        paymentGatewayFeeRate,
+        paymentGatewayFee,
+        paymentGatewayGstRate,
+        paymentGatewayGst,
+        tdsRate,
+        tdsAmount,
+        productCogs,
+        totalBusinessDeductions,
+        netProfit,
     };
 };
 
@@ -128,7 +188,7 @@ const createRazorpayOrder = async (req, res) => {
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
-        const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod);
+        const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod, 'Online');
 
         const options = {
             amount: Math.round(pricing.totalAmount * 100), // amount in paisa
@@ -209,7 +269,7 @@ const verifyPaymentAndCreateOrder = async (req, res) => {
                 return res.status(400).json({ message: 'Cart is empty' });
             }
 
-            const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod, t);
+            const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod, 'Online', t);
 
             // Stock validation
             for (const { product, quantity } of pricing.processedItems) {
@@ -231,13 +291,23 @@ const verifyPaymentAndCreateOrder = async (req, res) => {
                 paymentId: razorpay_payment_id || `pay_dev_${Date.now()}`,
                 address: address,
                 status: 'Processing',
-                paymentMethod: 'Online'
+                paymentMethod: 'Online',
+                paymentGatewayFeeRate: pricing.paymentGatewayFeeRate,
+                paymentGatewayFee: pricing.paymentGatewayFee,
+                paymentGatewayGstRate: pricing.paymentGatewayGstRate,
+                paymentGatewayGst: pricing.paymentGatewayGst,
+                tdsRate: pricing.tdsRate,
+                tdsAmount: pricing.tdsAmount,
+                productCogs: pricing.productCogs,
+                totalBusinessDeductions: pricing.totalBusinessDeductions,
+                netProfit: pricing.netProfit,
             }, { transaction: t });
 
-            for (const { product, quantity, price } of pricing.processedItems) {
+            for (const { product, quantity, price, costPriceSnapshot } of pricing.processedItems) {
                 await OrderItem.create({
                     orderId: order.id,
                     price: price,
+                    costPriceSnapshot: costPriceSnapshot,
                     quantity: quantity,
                     productId: product.id
                 }, { transaction: t });
@@ -266,7 +336,7 @@ const verifyPaymentAndCreateOrder = async (req, res) => {
             }
 
             await t.commit();
-            res.json({ message: 'Order placed successfully', orderId: order.id });
+            res.json({ message: 'Order placed successfully', orderId: order.id, order });
 
         } else {
             await t.rollback();
@@ -308,7 +378,7 @@ const createCODOrder = async (req, res) => {
             return res.status(400).json({ message: 'Cart is empty' });
         }
 
-        const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod, t);
+        const pricing = await calculateOrderPricingInternal(cartItems, couponCode, deliveryMethod, 'COD', t);
 
         // Stock validation
         for (const { product, quantity } of pricing.processedItems) {
@@ -329,13 +399,23 @@ const createCODOrder = async (req, res) => {
             paymentStatus: 'Pending',
             address: address,
             status: 'Processing',
-            paymentMethod: 'COD'
+            paymentMethod: 'COD',
+            paymentGatewayFeeRate: pricing.paymentGatewayFeeRate,
+            paymentGatewayFee: pricing.paymentGatewayFee,
+            paymentGatewayGstRate: pricing.paymentGatewayGstRate,
+            paymentGatewayGst: pricing.paymentGatewayGst,
+            tdsRate: pricing.tdsRate,
+            tdsAmount: pricing.tdsAmount,
+            productCogs: pricing.productCogs,
+            totalBusinessDeductions: pricing.totalBusinessDeductions,
+            netProfit: pricing.netProfit,
         }, { transaction: t });
 
-        for (const { product, quantity, price } of pricing.processedItems) {
+        for (const { product, quantity, price, costPriceSnapshot } of pricing.processedItems) {
             await OrderItem.create({
                 orderId: order.id,
                 price: price,
+                costPriceSnapshot: costPriceSnapshot,
                 quantity: quantity,
                 productId: product.id
             }, { transaction: t });

@@ -21,6 +21,7 @@ const SeoAuditLog = require('./SeoAuditLog');
 const DeliverySetting = require('./DeliverySetting');
 const Blog = require('./Blog');
 const GaSetting = require('./GaSetting');
+const PaymentSetting = require('./PaymentSetting');
 
 // ─── Extended Product Metadata Models ────────────────────────────────────────
 const ProductHighlight = require('./ProductHighlight');
@@ -182,6 +183,7 @@ module.exports = {
     DeliverySetting,
     Blog,
     GaSetting,
+    PaymentSetting,
     // Extended Product Metadata models
     ProductHighlight,
     ProductSpecification,

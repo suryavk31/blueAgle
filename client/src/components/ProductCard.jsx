@@ -36,7 +36,7 @@ const ProductCard = memo(({ product }) => {
     return (
         <Link 
             to={`/product/${product.id}`} 
-            className="block w-full max-w-[205px] h-full bg-white rounded-2xl border border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col group overflow-hidden shrink-0"
+            className="block w-full h-full bg-white rounded-2xl border border-gray-100 hover:border-purple-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col group overflow-hidden"
         >
             {/* Discount Badge */}
             {discountPercent > 0 && (

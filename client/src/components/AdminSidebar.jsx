@@ -4,14 +4,14 @@ import {
     FaTachometerAlt, FaBox, FaList, FaShoppingCart, FaTags, FaUsers, FaFileAlt,
     FaSignOutAlt, FaBullhorn, FaSearch, FaStore, FaShoppingBag, FaChartBar,
     FaCog, FaShieldAlt, FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory,
-    FaAd, FaChevronDown, FaChevronRight, FaExternalLinkAlt, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTimes, FaTruck
+    FaAd, FaChevronDown, FaChevronRight, FaExternalLinkAlt, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTimes, FaTruck, FaCreditCard
 } from 'react-icons/fa';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const ICON_MAP = {
     FaTachometerAlt, FaBox, FaList, FaShoppingCart, FaTags, FaUsers, FaFileAlt,
     FaBullhorn, FaSearch, FaStore, FaShoppingBag, FaChartBar, FaCog, FaShieldAlt,
-    FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory, FaAd, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTruck,
+    FaCubes, FaUserTag, FaUsersCog, FaEnvelope, FaHistory, FaAd, FaFileInvoiceDollar, FaCode, FaSlidersH, FaTruck, FaCreditCard,
 };
 
 const getIcon = (iconName, className = '') => {
@@ -221,6 +221,18 @@ const AdminSidebar = ({ isOpen, onCloseMobile, isCollapsed }) => {
                 >
                     <FaTruck className="text-xs text-indigo-400" />
                     {!isCollapsed && <span>Delivery Settings</span>}
+                </Link>
+
+                <Link
+                    to="/admin/settings/payment"
+                    onClick={onCloseMobile}
+                    className={`flex items-center justify-center gap-2 w-full py-2 bg-white/5 text-indigo-300 rounded-xl hover:bg-white/10 hover:text-white transition-all font-semibold text-xs border border-white/5 ${
+                        isCollapsed ? 'px-0' : 'px-3'
+                    }`}
+                    title="Payment & Tax Settings"
+                >
+                    <FaCreditCard className="text-xs text-indigo-400" />
+                    {!isCollapsed && <span>Payment &amp; Tax Settings</span>}
                 </Link>
 
                 <Link

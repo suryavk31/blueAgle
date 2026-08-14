@@ -241,7 +241,7 @@ const ProductList = () => {
                 {/* PRODUCT GRID */}
                 <div className="w-full">
                     {loading ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
                             {[...Array(8)].map((_, i) => <ProductSkeleton key={i} />)}
                         </div>
                     ) : products.length === 0 ? (
@@ -259,11 +259,9 @@ const ProductList = () => {
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,205px))] gap-3 sm:gap-4 md:gap-5 justify-start">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
                             {products.map(prod => (
-                                <div key={prod.id} className="flex justify-start">
-                                    <ProductCard product={prod} />
-                                </div>
+                                <ProductCard key={prod.id} product={prod} />
                             ))}
                         </div>
                     )}
