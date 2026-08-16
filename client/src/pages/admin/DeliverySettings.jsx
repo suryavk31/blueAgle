@@ -84,16 +84,16 @@ const DeliverySettings = () => {
     }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto font-sans">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-5xl mx-auto font-sans animate-fade-in pb-10">
             {/* Header */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
-                        <FaTruck className="text-xl" />
+            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-slate-100">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shrink-0 mt-0.5 sm:mt-0">
+                        <FaTruck className="text-lg sm:text-xl" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-extrabold text-slate-900">Delivery &amp; Shipping Settings</h1>
-                        <p className="text-xs text-slate-500 font-medium">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-lg sm:text-2xl font-extrabold text-slate-900">Delivery &amp; Shipping Settings</h1>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">
                             Configure standard delivery fees, free shipping thresholds, and express delivery rules.
                         </p>
                     </div>
@@ -101,14 +101,14 @@ const DeliverySettings = () => {
             </div>
 
             {/* Live Calculation Preview Banner */}
-            <div className="mb-8 bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
                     <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
                             Live Store Banner Preview
                         </span>
-                        <h3 className="text-lg font-black mt-2">
+                        <h3 className="text-base sm:text-lg font-black mt-2">
                             {formData.freeDeliveryEnabled ? (
                                 `🎉 FREE Delivery on all orders over ${formData.currencySymbol}${formData.freeDeliveryThreshold}`
                             ) : (
@@ -119,25 +119,25 @@ const DeliverySettings = () => {
                             Orders below threshold are charged standard rate ({formData.currencySymbol}{formData.standardDeliveryCharge}).
                         </p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-3 text-center min-w-[160px]">
-                        <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-200">Standard Rate</div>
-                        <div className="text-xl font-black">{formData.currencySymbol}{formData.standardDeliveryCharge}</div>
+                    <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-2.5 sm:p-3 text-center min-w-[140px] sm:min-w-[160px] self-start sm:self-auto">
+                        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold text-indigo-200">Standard Rate</div>
+                        <div className="text-lg sm:text-xl font-black">{formData.currencySymbol}{formData.standardDeliveryCharge}</div>
                     </div>
                 </div>
             </div>
 
             {/* Form Container */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
 
                 {/* Free Shipping Configuration Box */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-6">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                                <FaGift className="text-lg" />
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                                <FaGift className="text-base sm:text-lg" />
                             </div>
                             <div>
-                                <h3 className="font-extrabold text-slate-800 text-base">Free Delivery Threshold</h3>
+                                <h3 className="font-extrabold text-slate-800 text-sm sm:text-base">Free Delivery Threshold</h3>
                                 <p className="text-xs text-slate-500">Automatically waive shipping charges when order subtotal meets threshold.</p>
                             </div>
                         </div>

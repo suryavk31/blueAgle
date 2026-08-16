@@ -282,43 +282,43 @@ const BlogManager = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in pb-10">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                        <FaBookOpen className="text-[#3c006b]" /> Blog &amp; Educational Content Manager
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
+                <div className="space-y-1">
+                    <h1 className="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2.5 sm:gap-3">
+                        <FaBookOpen className="text-[#3c006b] shrink-0" /> Blog &amp; Educational Content Manager
                     </h1>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium">
                         Create, publish, and sync SEO metadata for culinary guides, smoke point charts, and oil extraction pillar articles.
                     </p>
                 </div>
 
                 <button
                     onClick={handleOpenCreate}
-                    className="px-5 py-3 bg-[#3c006b] hover:bg-[#2e0052] text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-2 shrink-0"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 bg-[#3c006b] hover:bg-[#2e0052] text-white font-extrabold text-xs rounded-xl sm:rounded-2xl shadow-md shadow-purple-950/20 transition-all flex items-center justify-center gap-2 shrink-0"
                 >
-                    <FaPlus /> Write New Article
+                    <FaPlus className="shrink-0" /> Write New Article
                 </button>
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-4">
                 <div className="relative flex-1 w-full">
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search articles by title or slug..."
-                        className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-10 pr-4 text-xs font-medium focus:ring-4 focus:ring-[#3c006b]/10 focus:border-[#3c006b] focus:outline-none"
+                        className="w-full bg-white border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 sm:py-3 pl-9 pr-4 text-xs font-medium focus:ring-4 focus:ring-[#3c006b]/10 focus:border-[#3c006b] focus:outline-none"
                     />
-                    <FaSearch className="absolute left-3.5 top-3.5 text-slate-400 text-xs" />
+                    <FaSearch className="absolute left-3.5 top-3 text-slate-400 text-xs" />
                 </div>
 
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full sm:w-48 bg-white border border-slate-200 rounded-2xl p-3 text-xs font-bold focus:outline-none"
+                    className="w-full sm:w-48 bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 text-xs font-bold focus:outline-none"
                 >
                     <option value="">All Statuses</option>
                     <option value="Published">Published</option>
@@ -326,106 +326,151 @@ const BlogManager = () => {
                 </select>
             </div>
 
-            {/* Articles Table */}
-            <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+            {/* Articles List / Table */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 overflow-hidden shadow-xs">
                 {loading ? (
                     <div className="p-8 text-center text-xs text-slate-400 font-bold">Loading articles...</div>
                 ) : blogs.length === 0 ? (
-                    <div className="p-12 text-center space-y-3">
-                        <FaBookOpen className="text-4xl text-slate-300 mx-auto" />
+                    <div className="p-8 sm:p-12 text-center space-y-3">
+                        <FaBookOpen className="text-3xl sm:text-4xl text-slate-300 mx-auto" />
                         <h3 className="text-sm font-bold text-slate-800">No blog articles found</h3>
                         <p className="text-xs text-slate-500">Click "Write New Article" to publish your first educational pillar post.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-200">
-                                <tr>
-                                    <th className="p-4">Article Title &amp; Slug</th>
-                                    <th className="p-4">Category</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4">Views</th>
-                                    <th className="p-4">Published At</th>
-                                    <th className="p-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 font-medium">
-                                {blogs.map((b) => (
-                                    <tr key={b.id} className="hover:bg-slate-50/80 transition-colors">
-                                        <td className="p-4">
-                                            <div className="font-extrabold text-slate-900">{b.title}</div>
-                                            <div className="text-[11px] font-mono text-slate-400">/blog/{b.slug}</div>
-                                        </td>
-                                        <td className="p-4">
-                                            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold">
-                                                {b.category}
-                                            </span>
-                                        </td>
-                                        <td className="p-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                                                b.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                            }`}>
-                                                {b.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 font-mono font-bold text-slate-600">{b.views || 0}</td>
-                                        <td className="p-4 text-slate-500 font-mono text-[11px]">
-                                            {new Date(b.publishedAt || b.createdAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="p-4 text-right space-x-2">
-                                            <button
-                                                onClick={() => handleOpenEdit(b)}
-                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                                                title="Edit Article & SEO"
-                                            >
-                                                <FaEdit className="text-sm" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(b.id, b.title)}
-                                                className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                                                title="Delete Article"
-                                            >
-                                                <FaTrash className="text-sm" />
-                                            </button>
-                                        </td>
+                    <>
+                        {/* Mobile Cards View (< md screens) */}
+                        <div className="divide-y divide-slate-100 md:hidden">
+                            {blogs.map((b) => (
+                                <div key={b.id} className="p-4 space-y-2.5">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="font-extrabold text-slate-900 text-xs sm:text-sm line-clamp-2">{b.title}</div>
+                                            <div className="text-[10px] font-mono text-slate-400 truncate mt-0.5">/blog/{b.slug}</div>
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase shrink-0 ${
+                                            b.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                        }`}>
+                                            {b.status}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
+                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] font-bold truncate max-w-[140px]">
+                                            {b.category}
+                                        </span>
+                                        <span>👁️ {b.views || 0} views</span>
+                                        <span className="font-mono text-[10px]">{new Date(b.publishedAt || b.createdAt).toLocaleDateString()}</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-50">
+                                        <button
+                                            onClick={() => handleOpenEdit(b)}
+                                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
+                                        >
+                                            <FaEdit className="text-[11px]" /> Edit &amp; SEO
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(b.id, b.title)}
+                                            className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
+                                        >
+                                            <FaTrash className="text-[11px]" /> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View (>= md screens) */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                                <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-extrabold border-b border-slate-200">
+                                    <tr>
+                                        <th className="p-4">Article Title &amp; Slug</th>
+                                        <th className="p-4">Category</th>
+                                        <th className="p-4">Status</th>
+                                        <th className="p-4">Views</th>
+                                        <th className="p-4">Published At</th>
+                                        <th className="p-4 text-right">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 font-medium">
+                                    {blogs.map((b) => (
+                                        <tr key={b.id} className="hover:bg-slate-50/80 transition-colors">
+                                            <td className="p-4">
+                                                <div className="font-extrabold text-slate-900">{b.title}</div>
+                                                <div className="text-[11px] font-mono text-slate-400">/blog/{b.slug}</div>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold">
+                                                    {b.category}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                                                    b.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                    {b.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 font-mono font-bold text-slate-600">{b.views || 0}</td>
+                                            <td className="p-4 text-slate-500 font-mono text-[11px]">
+                                                {new Date(b.publishedAt || b.createdAt).toLocaleDateString()}
+                                            </td>
+                                            <td className="p-4 text-right space-x-2">
+                                                <button
+                                                    onClick={() => handleOpenEdit(b)}
+                                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                    title="Edit Article & SEO"
+                                                >
+                                                    <FaEdit className="text-sm" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(b.id, b.title)}
+                                                    className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                    title="Delete Article"
+                                                >
+                                                    <FaTrash className="text-sm" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
                 )}
             </div>
 
             {/* CREATE / EDIT MODAL */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border border-slate-100">
+                <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col border border-slate-100">
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-[#1b1b4b] via-[#2c1b64] to-[#3c006b] p-6 text-white flex justify-between items-start shrink-0">
-                            <div>
-                                <h3 className="font-black text-xl text-white flex items-center gap-2">
-                                    {editingId ? <FaEdit className="text-pink-400" /> : <FaPlus className="text-pink-400" />}
-                                    {editingId ? `Edit Article: ${formData.title}` : 'Write New Educational Pillar Article'}
+                        <div className="bg-gradient-to-r from-[#1b1b4b] via-[#2c1b64] to-[#3c006b] p-4 sm:p-6 text-white flex justify-between items-start gap-2 shrink-0">
+                            <div className="min-w-0 flex-1">
+                                <h3 className="font-black text-base sm:text-xl text-white flex items-center gap-2">
+                                    {editingId ? <FaEdit className="text-pink-400 shrink-0" /> : <FaPlus className="text-pink-400 shrink-0" />}
+                                    <span className="truncate">{editingId ? `Edit Article: ${formData.title}` : 'Write New Educational Pillar Article'}</span>
                                 </h3>
-                                <p className="text-xs text-slate-300 font-mono mt-0.5">
+                                <p className="text-[11px] sm:text-xs text-slate-300 font-mono mt-0.5 truncate">
                                     /blog/{formData.slug || 'your-article-slug'}
                                 </p>
                             </div>
 
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 text-white/70 hover:text-white rounded-xl">
-                                <FaTimes className="text-lg" />
+                            <button onClick={() => setIsModalOpen(false)} className="p-1.5 sm:p-2 text-white/70 hover:text-white rounded-xl shrink-0">
+                                <FaTimes className="text-base sm:text-lg" />
                             </button>
                         </div>
 
                         {/* Preset Template Buttons */}
-                        <div className="p-3 bg-slate-100 border-b border-slate-200 flex items-center gap-2 text-xs font-bold shrink-0">
-                            <span className="text-slate-500 flex items-center gap-1"><FaMagic className="text-purple-600" /> Templates:</span>
+                        <div className="p-2.5 sm:p-3 bg-slate-100 border-b border-slate-200 flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold shrink-0 overflow-x-auto scrollbar-none">
+                            <span className="text-slate-500 flex items-center gap-1 shrink-0"><FaMagic className="text-purple-600" /> Templates:</span>
                             {Object.keys(SAMPLE_TEMPLATES).map((tplKey) => (
                                 <button
                                     key={tplKey}
                                     type="button"
                                     onClick={() => handleApplyTemplate(tplKey)}
-                                    className="px-3 py-1 bg-white hover:bg-slate-200 text-slate-800 rounded-lg border border-slate-300 text-[11px] font-extrabold transition-all"
+                                    className="px-2.5 py-1 bg-white hover:bg-slate-200 text-slate-800 rounded-lg border border-slate-300 text-[10px] sm:text-[11px] font-extrabold transition-all whitespace-nowrap shrink-0"
                                 >
                                     + {tplKey}
                                 </button>
@@ -433,32 +478,32 @@ const BlogManager = () => {
                         </div>
 
                         {/* Navigation Tabs */}
-                        <div className="p-4 bg-slate-50 border-b border-slate-100 shrink-0">
-                            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-200/70 rounded-2xl text-xs font-bold">
+                        <div className="p-2.5 sm:p-4 bg-slate-50 border-b border-slate-100 shrink-0">
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1 bg-slate-200/70 rounded-xl sm:rounded-2xl text-xs font-bold">
                                 <button
                                     type="button"
                                     onClick={() => setEditorTab('CONTENT')}
-                                    className={`py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 ${
-                                        editorTab === 'CONTENT' ? 'bg-[#3c006b] text-white shadow-md font-extrabold' : 'text-slate-600 font-semibold'
+                                    className={`py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs ${
+                                        editorTab === 'CONTENT' ? 'bg-[#3c006b] text-white shadow-xs font-extrabold' : 'text-slate-600 font-semibold'
                                     }`}
                                 >
-                                    <FaBookOpen /> Article Body &amp; Details
+                                    <FaBookOpen /> <span>Article Body &amp; Details</span>
                                 </button>
 
                                 <button
                                     type="button"
                                     onClick={() => setEditorTab('SEO')}
-                                    className={`py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 ${
-                                        editorTab === 'SEO' ? 'bg-[#3c006b] text-white shadow-md font-extrabold' : 'text-slate-600 font-semibold'
+                                    className={`py-2 sm:py-2.5 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs ${
+                                        editorTab === 'SEO' ? 'bg-[#3c006b] text-white shadow-xs font-extrabold' : 'text-slate-600 font-semibold'
                                     }`}
                                 >
-                                    <FaGlobe /> SEO Metadata Settings
+                                    <FaGlobe /> <span>SEO Metadata Settings</span>
                                 </button>
                             </div>
                         </div>
 
                         {/* Form Body */}
-                        <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-5 text-xs font-semibold text-slate-700">
+                        <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-5 text-xs font-semibold text-slate-700">
                             {editorTab === 'CONTENT' && (
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

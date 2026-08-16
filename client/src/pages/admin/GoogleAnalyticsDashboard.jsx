@@ -93,25 +93,25 @@ const GoogleAnalyticsDashboard = () => {
     const { overview = {}, trafficOverview = [], trafficSources = [], topPages = [], topProducts = [], devices = [], geo = [], realtimeUsers = 0 } = data;
 
     return (
-        <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-7xl mx-auto animate-fade-in pb-10">
             {/* Header Control Bar */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-100">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Google Analytics 4</h1>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-slate-100">
+                <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Google Analytics 4</h1>
                         {data.isDemoData ? (
-                            <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-black rounded-full flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span className="px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] sm:text-xs font-black rounded-full flex items-center gap-1.5 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                 Demo Preview Mode
                             </span>
                         ) : (
-                            <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black rounded-full flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-black rounded-full flex items-center gap-1.5 shrink-0">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                                 Live GA4 Connected
                             </span>
                         )}
                     </div>
-                    <p className="text-xs text-slate-500 font-medium mt-1">
+                    <p className="text-xs text-slate-500 font-medium">
                         {data.isDemoData
                             ? 'Displaying demonstration analytics report. Connect your GA4 Property in Settings for live traffic data.'
                             : 'Real-time visitor metrics & e-commerce analytics directly from official Google Analytics Data API.'
@@ -119,13 +119,13 @@ const GoogleAnalyticsDashboard = () => {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
                     {/* Real-time active users counter */}
-                    <div className="px-4 py-2 bg-purple-50 border border-purple-100 rounded-xl flex items-center gap-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse"></span>
-                        <div className="text-left">
-                            <span className="text-[10px] font-extrabold uppercase text-purple-700 tracking-wider block">Active Users (30m)</span>
-                            <span className="text-sm font-black text-purple-900">{realtimeUsers} Online</span>
+                    <div className="col-span-2 sm:col-span-1 px-3 py-2 bg-purple-50 border border-purple-100 rounded-xl flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse shrink-0"></span>
+                        <div className="text-left min-w-0">
+                            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase text-purple-700 tracking-wider block truncate">Active Users (30m)</span>
+                            <span className="text-xs sm:text-sm font-black text-purple-900">{realtimeUsers} Online</span>
                         </div>
                     </div>
 
@@ -133,7 +133,7 @@ const GoogleAnalyticsDashboard = () => {
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 px-3.5 py-2.5 rounded-xl focus:outline-none"
+                        className="bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 px-3 py-2.5 rounded-xl focus:outline-none"
                     >
                         {DATE_RANGES.map((r) => (
                             <option key={r.value} value={r.value}>{r.label}</option>
@@ -145,7 +145,7 @@ const GoogleAnalyticsDashboard = () => {
                         type="button"
                         onClick={() => fetchAnalytics(true)}
                         disabled={refreshing}
-                        className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-100 transition-all flex items-center gap-2"
+                        className="px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-100 transition-all flex items-center justify-center gap-1.5"
                         title="Fetch fresh data from Google Analytics API"
                     >
                         <FaSync className={refreshing ? 'animate-spin' : ''} />
@@ -156,7 +156,7 @@ const GoogleAnalyticsDashboard = () => {
 
             {/* Demo Mode Notice Banner */}
             {data.isDemoData && (
-                <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-200/80 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+                <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-200/80 rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shrink-0 font-bold shadow-xs">
                             📊
