@@ -92,26 +92,26 @@ const PaymentSettings = () => {
     }
 
     return (
-        <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-8 animate-fade-in">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-100">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shrink-0 border border-indigo-100">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-slate-100">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl sm:text-2xl shrink-0 border border-indigo-100 mt-1 sm:mt-0">
                         <FaCreditCard />
                     </div>
                     <div>
-                        <h1 className="text-xl font-black text-slate-900">Payment &amp; Tax Settings</h1>
+                        <h1 className="text-lg sm:text-xl font-black text-slate-900">Payment &amp; Tax Settings</h1>
                         <p className="text-xs text-slate-500 font-medium mt-0.5">
                             Configure internal accounting rates for Payment Gateway Fees, GST on Gateway Fees, and TDS calculations.
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
                     <button
                         type="button"
                         onClick={handleResetDefaults}
-                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+                        className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
                     >
                         <FaUndo /> Reset Defaults
                     </button>
@@ -119,7 +119,7 @@ const PaymentSettings = () => {
                         type="button"
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
                     >
                         <FaSave /> {saving ? 'Saving...' : 'Save Settings'}
                     </button>
@@ -127,9 +127,9 @@ const PaymentSettings = () => {
             </div>
 
             {/* Helper Alert Card */}
-            <div className="bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-indigo-50/70 p-5 rounded-2xl border border-indigo-100 space-y-2 text-xs">
-                <div className="flex items-center gap-2 font-extrabold text-indigo-900">
-                    <FaShieldAlt className="text-indigo-600" />
+            <div className="bg-gradient-to-r from-indigo-50/70 via-purple-50/70 to-indigo-50/70 p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 space-y-2 text-xs">
+                <div className="flex items-center gap-2 font-extrabold text-indigo-900 text-xs sm:text-sm">
+                    <FaShieldAlt className="text-indigo-600 shrink-0" />
                     <span>Internal Accounting Deductions &amp; Rate Snapshot Rule</span>
                 </div>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
@@ -139,7 +139,7 @@ const PaymentSettings = () => {
             </div>
 
             {/* Config Form */}
-            <form onSubmit={handleSave} className="bg-white p-8 rounded-2xl shadow-xs border border-slate-100 space-y-6">
+            <form onSubmit={handleSave} className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xs border border-slate-100 space-y-5 sm:space-y-6">
                 <h2 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                     <FaPercentage className="text-indigo-600" /> Accounting Percentage Rates
                 </h2>

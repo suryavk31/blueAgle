@@ -84,17 +84,17 @@ const GaSettings = () => {
     }
 
     return (
-        <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8">
+        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in pb-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-100">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl shrink-0 border border-amber-100">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-slate-100">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl sm:text-2xl shrink-0 border border-amber-100 mt-1 sm:mt-0">
                         <FaGoogle />
                     </div>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-xl font-black text-slate-900">Google Analytics 4 Configuration</h1>
-                            <span className={`px-3 py-1 text-xs font-black rounded-full border ${
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="text-lg sm:text-xl font-black text-slate-900">Google Analytics 4 Configuration</h1>
+                            <span className={`px-2.5 py-0.5 text-[10px] sm:text-xs font-black rounded-full border shrink-0 ${
                                 config.connectionStatus === 'Connected'
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                     : 'bg-amber-50 text-amber-700 border-amber-200'
@@ -108,33 +108,33 @@ const GaSettings = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full md:w-auto">
                     <Link
                         to="/admin/analytics/google"
-                        className="px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs rounded-xl transition-all flex items-center gap-2 border border-purple-200"
+                        className="flex items-center justify-center gap-2 px-3.5 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs rounded-xl transition-all border border-purple-200"
                     >
                         <FaChartBar />
-                        View Analytics Dashboard
+                        <span>View Analytics Dashboard</span>
                     </Link>
 
                     <button
                         type="button"
                         onClick={handleTestConnection}
                         disabled={testing}
-                        className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+                        className="flex items-center justify-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all"
                     >
                         <FaSync className={testing ? 'animate-spin' : ''} />
-                        {testing ? 'Testing...' : 'Test Connection'}
+                        <span>{testing ? 'Testing...' : 'Test Connection'}</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
                     >
                         <FaSave />
-                        {saving ? 'Saving...' : 'Save Settings'}
+                        <span>{saving ? 'Saving...' : 'Save Settings'}</span>
                     </button>
                 </div>
             </div>

@@ -404,56 +404,56 @@ const SeoManager = () => {
     const descLength = formData.metaDescription ? formData.metaDescription.length : 0;
 
     return (
-        <div className="space-y-8 animate-fade-in pb-16">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in pb-16">
             {/* Top Bar Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                        <FaGlobe className="text-[#3c006b]" /> Enterprise SEO Manager
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="space-y-1">
+                    <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5 sm:gap-3">
+                        <FaGlobe className="text-[#3c006b] shrink-0" /> Enterprise SEO Manager
                     </h2>
-                    <p className="text-sm text-gray-500 font-medium mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">
                         Dynamically manage titles, meta tags, Open Graph cards, schema JSON-LD, and automatic SEO discovery.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
                     {/* Auto-SEO Generate Button */}
                     <button
                         onClick={handleGenerateMissingSeo}
                         disabled={isSyncing}
-                        className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold px-4 py-2.5 rounded-xl shadow-md shadow-emerald-100 transition-all text-xs disabled:opacity-50"
+                        className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold px-3.5 py-2.5 rounded-xl shadow-xs transition-all text-xs disabled:opacity-50"
                         title="Scan application and populate missing SEO records automatically"
                     >
-                        <FaMagic className={isSyncing ? 'animate-spin' : ''} />
-                        {isSyncing ? 'Scanning...' : 'Generate Missing SEO'}
+                        <FaMagic className={isSyncing ? 'animate-spin shrink-0' : 'shrink-0'} />
+                        <span>{isSyncing ? 'Scanning...' : 'Generate Missing SEO'}</span>
                     </button>
 
                     <button
                         onClick={handleExport}
-                        className="flex items-center gap-2 bg-gray-100 text-gray-700 font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-all text-xs"
+                        className="flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-all text-xs"
                     >
-                        <FaDownload /> Export JSON
+                        <FaDownload className="text-[11px] shrink-0" /> Export JSON
                     </button>
 
-                    <label className="flex items-center gap-2 bg-gray-100 text-gray-700 font-bold px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-all text-xs cursor-pointer">
-                        <FaUpload /> Import JSON
+                    <label className="flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 font-bold px-3 py-2.5 rounded-xl hover:bg-gray-200 transition-all text-xs cursor-pointer">
+                        <FaUpload className="text-[11px] shrink-0" /> Import JSON
                         <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
                     </label>
 
                     <button
                         onClick={handleOpenCreate}
-                        className="flex items-center gap-2 bg-[#ff3269] text-white font-black px-5 py-2.5 rounded-xl hover:bg-[#e62e5c] shadow-lg shadow-pink-100 transition-all text-xs"
+                        className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 bg-[#ff3269] text-white font-black px-4 py-2.5 rounded-xl hover:bg-[#e62e5c] shadow-md shadow-pink-500/20 transition-all text-xs"
                     >
-                        <FaPlus /> Add New SEO Record
+                        <FaPlus className="shrink-0" /> Add New SEO Record
                     </button>
                 </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-gray-200 bg-white px-6 pt-3 rounded-2xl shadow-sm overflow-x-auto scrollbar-none">
+            <div className="flex border-b border-gray-200 bg-white px-3 sm:px-6 pt-2 sm:pt-3 rounded-2xl shadow-sm overflow-x-auto scrollbar-none gap-1 sm:gap-2">
                 <button
                     onClick={() => setActiveTab('RECORDS')}
-                    className={`pb-4 px-6 font-extrabold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                    className={`pb-3 sm:pb-4 px-3 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 ${
                         activeTab === 'RECORDS'
                             ? 'border-[#3c006b] text-[#3c006b]'
                             : 'border-transparent text-gray-400 hover:text-gray-700'
@@ -464,7 +464,7 @@ const SeoManager = () => {
 
                 <button
                     onClick={() => setActiveTab('SYNC')}
-                    className={`pb-4 px-6 font-extrabold text-sm border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                    className={`pb-3 sm:pb-4 px-3 sm:px-6 font-extrabold text-xs sm:text-sm border-b-2 transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 ${
                         activeTab === 'SYNC'
                             ? 'border-[#3c006b] text-[#3c006b]'
                             : 'border-transparent text-gray-400 hover:text-gray-700'
@@ -472,7 +472,7 @@ const SeoManager = () => {
                 >
                     <FaRobot className="text-emerald-600" /> Auto-Sync &amp; Discovery
                     {syncStats?.stats?.missingCount > 0 && (
-                        <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                        <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
                             {syncStats.stats.missingCount} Missing
                         </span>
                     )}
