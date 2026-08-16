@@ -5,12 +5,13 @@ import { FaUsers, FaSearch, FaUserShield, FaUserCircle } from 'react-icons/fa';
 const Users = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const res = await adminApi.get('/customer-users');
-                setUsers(res.data);
+                setUsers(res.data || []);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -20,28 +21,83 @@ const Users = () => {
         fetchUsers();
     }, []);
 
+    const filteredUsers = users.filter(user => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        const name = (user.name || '').toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const phone = (user.phone || '').toLowerCase();
+        return name.includes(q) || email.includes(q) || phone.includes(q);
+    });
+
     return (
-        <div className="space-y-6 sm:space-y-8 animate-fade-in pb-10">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in pb-10">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 bg-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60 pointer-events-none"></div>
                 <div className="relative z-10 space-y-1 text-left">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-900 flex items-center gap-3">
-                        <FaUsers className="text-indigo-600" /> Manage Customers
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-900 flex items-center gap-2.5 sm:gap-3">
+                        <FaUsers className="text-indigo-600 shrink-0" /> Manage Customers ({users.length})
                     </h2>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">View and manage all registered user accounts and their roles.</p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">View and manage all registered customer user accounts.</p>
                 </div>
                 <div className="relative z-10 flex items-center gap-2 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
                         <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
-                        <input type="text" placeholder="Search customers..." className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                        <input
+                            type="text"
+                            placeholder="Search by name, email, phone..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* Users Table */}
-            <div className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden text-left">
-                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+            {/* Users Section */}
+            <div className="bg-white p-3.5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden text-left">
+                {/* Mobile Cards View (< md screens) */}
+                <div className="space-y-3 md:hidden">
+                    {loading ? (
+                        [...Array(4)].map((_, i) => (
+                            <div key={i} className="p-4 bg-gray-50 rounded-xl animate-pulse space-y-2">
+                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                        ))
+                    ) : filteredUsers.length === 0 ? (
+                        <div className="text-center py-10 text-gray-400 font-medium text-xs sm:text-sm">
+                            No registered customer accounts found.
+                        </div>
+                    ) : (
+                        filteredUsers.map(user => (
+                            <div key={user.id} className="bg-white rounded-xl p-3.5 border border-gray-100 shadow-2xs space-y-2.5">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
+                                            {(user.name || user.username || 'U')[0].toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-gray-900 text-xs truncate">{user.name || 'Unnamed Customer'}</p>
+                                            <p className="text-[10px] text-gray-400 truncate">{user.email || 'No email'}</p>
+                                        </div>
+                                    </div>
+                                    <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold text-[9px] shrink-0">
+                                        <FaUserShield size={9} /> {user.role || 'Customer'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between pt-1 border-t border-gray-50 text-[11px] text-gray-500">
+                                    <span>Phone: <strong className="text-gray-700">{user.phone || 'N/A'}</strong></span>
+                                    <span>Joined: {new Date(user.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Desktop Table View (>= md screens) */}
+                <div className="hidden md:block overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
                     <table className="w-full text-left text-xs sm:text-sm border-separate border-spacing-y-2.5 min-w-[500px]">
                         <thead className="bg-transparent text-gray-400 font-bold uppercase tracking-wider text-xs">
                             <tr>
@@ -61,10 +117,10 @@ const Users = () => {
                                         <td className="px-4 sm:px-6 py-3"><div className="h-4 bg-gray-100 rounded w-20" /></td>
                                     </tr>
                                 ))
-                            ) : users.length === 0 ? (
+                            ) : filteredUsers.length === 0 ? (
                                 <tr><td colSpan={4} className="text-center py-10 text-gray-400 font-medium">No registered customer accounts found.</td></tr>
                             ) : (
-                                users.map(user => (
+                                filteredUsers.map(user => (
                                     <tr key={user.id} className="bg-gray-50/50 hover:bg-gray-50 transition-all rounded-2xl">
                                         <td className="px-4 sm:px-6 py-3.5 rounded-l-2xl border-y border-l border-gray-100">
                                             <div className="flex items-center gap-3">
