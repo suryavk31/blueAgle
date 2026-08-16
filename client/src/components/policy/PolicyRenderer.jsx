@@ -64,25 +64,25 @@ const PolicyRenderer = ({ policyJson, searchQuery = '' }) => {
     }
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-5 sm:space-y-8 md:space-y-10">
             {filteredSections.map((section, sIdx) => {
                 const sectionId = section.id || `section-${sIdx + 1}`;
                 return (
                     <section
                         key={sectionId}
                         id={sectionId}
-                        className="scroll-mt-24 bg-white rounded-3xl p-6 md:p-8 border border-gray-100/80 shadow-sm relative group"
+                        className="scroll-mt-20 md:scroll-mt-24 bg-slate-50/60 md:bg-white rounded-2xl md:rounded-3xl p-3.5 sm:p-6 md:p-8 border border-gray-100 shadow-2xs md:shadow-sm relative group"
                     >
                         {/* Section Header */}
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                            <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3.5 sm:pb-4 sm:mb-6">
+                            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
                                 {section.title}
                             </h2>
 
                             {/* Copy Anchor Link Button */}
                             <button
                                 onClick={() => handleCopyLink(sectionId)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-400 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 rounded-xl text-xs flex items-center gap-1 font-semibold"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 text-gray-400 hover:text-indigo-600 bg-white md:bg-gray-50 hover:bg-indigo-50 rounded-lg sm:rounded-xl text-xs flex items-center gap-1 font-semibold border border-gray-100 md:border-transparent"
                                 title="Copy section link"
                             >
                                 {copiedSectionId === sectionId ? (
@@ -98,7 +98,7 @@ const PolicyRenderer = ({ policyJson, searchQuery = '' }) => {
                         </div>
 
                         {/* Section Content Blocks */}
-                        <div className="space-y-5 text-sm md:text-base leading-relaxed text-gray-700">
+                        <div className="space-y-3.5 sm:space-y-5 text-xs sm:text-sm md:text-base leading-relaxed text-gray-700">
                             {Array.isArray(section.content) &&
                                 section.content.map((blk, bIdx) => (
                                     <RenderBlock
@@ -155,12 +155,12 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
 
         case 'warning_box':
             return (
-                <div className="bg-red-50 border-l-4 border-red-500 rounded-r-2xl p-5 my-4 text-red-900">
-                    <div className="flex items-start gap-3">
-                        <FaExclamationTriangle className="text-red-500 text-lg shrink-0 mt-0.5" />
+                <div className="bg-red-50 border-l-4 border-red-500 rounded-r-xl sm:rounded-r-2xl p-3.5 sm:p-5 my-3 sm:my-4 text-red-900">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                        <FaExclamationTriangle className="text-red-500 text-base sm:text-lg shrink-0 mt-0.5" />
                         <div>
-                            {block.title && <h5 className="font-bold text-sm mb-1">{block.title}</h5>}
-                            <p className="text-xs md:text-sm leading-relaxed">{block.text}</p>
+                            {block.title && <h5 className="font-bold text-xs sm:text-sm mb-1">{block.title}</h5>}
+                            <p className="text-xs sm:text-sm leading-relaxed">{block.text}</p>
                         </div>
                     </div>
                 </div>
@@ -168,12 +168,12 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
 
         case 'info_box':
             return (
-                <div className="bg-indigo-50/70 border-l-4 border-indigo-500 rounded-r-2xl p-5 my-4 text-indigo-950">
-                    <div className="flex items-start gap-3">
-                        <FaInfoCircle className="text-indigo-500 text-lg shrink-0 mt-0.5" />
+                <div className="bg-indigo-50/70 border-l-4 border-indigo-500 rounded-r-xl sm:rounded-r-2xl p-3.5 sm:p-5 my-3 sm:my-4 text-indigo-950">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                        <FaInfoCircle className="text-indigo-500 text-base sm:text-lg shrink-0 mt-0.5" />
                         <div>
-                            {block.title && <h5 className="font-bold text-sm mb-1">{block.title}</h5>}
-                            <p className="text-xs md:text-sm leading-relaxed">{block.text}</p>
+                            {block.title && <h5 className="font-bold text-xs sm:text-sm mb-1">{block.title}</h5>}
+                            <p className="text-xs sm:text-sm leading-relaxed">{block.text}</p>
                         </div>
                     </div>
                 </div>
@@ -181,12 +181,12 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
 
         case 'success_box':
             return (
-                <div className="bg-green-50 border-l-4 border-green-500 rounded-r-2xl p-5 my-4 text-green-950">
-                    <div className="flex items-start gap-3">
-                        <FaCheckCircle className="text-green-500 text-lg shrink-0 mt-0.5" />
+                <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl sm:rounded-r-2xl p-3.5 sm:p-5 my-3 sm:my-4 text-green-950">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
+                        <FaCheckCircle className="text-green-500 text-base sm:text-lg shrink-0 mt-0.5" />
                         <div>
-                            {block.title && <h5 className="font-bold text-sm mb-1">{block.title}</h5>}
-                            <p className="text-xs md:text-sm leading-relaxed">{block.text}</p>
+                            {block.title && <h5 className="font-bold text-xs sm:text-sm mb-1">{block.title}</h5>}
+                            <p className="text-xs sm:text-sm leading-relaxed">{block.text}</p>
                         </div>
                     </div>
                 </div>
@@ -194,22 +194,22 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
 
         case 'quote':
             return (
-                <blockquote className="bg-gray-50 border-l-4 border-gray-400 p-5 rounded-r-2xl italic text-gray-700 my-4 relative">
-                    <FaQuoteLeft className="text-gray-300 text-xl mb-2" />
-                    <p className="text-sm">{block.text}</p>
+                <blockquote className="bg-gray-50 border-l-4 border-gray-400 p-3.5 sm:p-5 rounded-r-xl sm:rounded-r-2xl italic text-gray-700 my-3 sm:my-4 relative">
+                    <FaQuoteLeft className="text-gray-300 text-base sm:text-xl mb-1.5 sm:mb-2" />
+                    <p className="text-xs sm:text-sm leading-relaxed">{block.text}</p>
                     {block.author && <span className="block mt-2 text-xs font-bold text-gray-500 not-italic">— {block.author}</span>}
                 </blockquote>
             );
 
         case 'table':
             return (
-                <div className="overflow-x-auto my-4 rounded-2xl border border-gray-200">
-                    <table className="w-full text-left text-xs md:text-sm border-collapse">
+                <div className="overflow-x-auto my-3 sm:my-4 rounded-xl sm:rounded-2xl border border-gray-200">
+                    <table className="w-full text-left text-xs sm:text-sm border-collapse">
                         {Array.isArray(block.headers) && block.headers.length > 0 && (
-                            <thead className="bg-gray-100 text-gray-800 font-bold uppercase tracking-wider text-[11px]">
+                            <thead className="bg-gray-100 text-gray-800 font-bold uppercase tracking-wider text-[10px] sm:text-[11px]">
                                 <tr>
                                     {block.headers.map((h, i) => (
-                                        <th key={i} className="px-4 py-3 border-b border-gray-200">{h}</th>
+                                        <th key={i} className="px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-200">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
@@ -219,8 +219,8 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
                                 block.rows.map((row, rIdx) => (
                                     <tr key={rIdx} className="border-b border-gray-100 hover:bg-gray-50">
                                         {Array.isArray(row)
-                                            ? row.map((cell, cIdx) => <td key={cIdx} className="px-4 py-3">{cell}</td>)
-                                            : <td className="px-4 py-3">{row}</td>}
+                                            ? row.map((cell, cIdx) => <td key={cIdx} className="px-3 py-2 sm:px-4 sm:py-3">{cell}</td>)
+                                            : <td className="px-3 py-2 sm:px-4 sm:py-3">{row}</td>}
                                     </tr>
                                 ))}
                         </tbody>
@@ -231,21 +231,21 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
         case 'accordion':
         case 'faq':
             return (
-                <div className="space-y-3 my-4">
+                <div className="space-y-2.5 sm:space-y-3 my-3 sm:my-4">
                     {(block.items || []).map((faq, fIdx) => {
                         const accKey = `${block.id || 'faq'}-${fIdx}`;
                         const isOpen = !!openAccordions[accKey];
                         return (
-                            <div key={fIdx} className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                            <div key={fIdx} className="border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden bg-white shadow-2xs">
                                 <button
                                     onClick={() => toggleAccordion(accKey)}
-                                    className="w-full flex items-center justify-between p-4 text-left font-semibold text-gray-900 text-sm hover:bg-gray-50 transition-colors"
+                                    className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-semibold text-gray-900 text-xs sm:text-sm hover:bg-gray-50 transition-colors gap-2"
                                 >
                                     <span>{faq.question || faq.title}</span>
-                                    {isOpen ? <FaChevronUp className="text-xs text-indigo-600" /> : <FaChevronDown className="text-xs text-gray-400" />}
+                                    {isOpen ? <FaChevronUp className="text-[10px] sm:text-xs text-indigo-600 shrink-0" /> : <FaChevronDown className="text-[10px] sm:text-xs text-gray-400 shrink-0" />}
                                 </button>
                                 {isOpen && (
-                                    <div className="p-4 pt-0 border-t border-gray-100 bg-gray-50/50 text-xs md:text-sm text-gray-600 leading-relaxed">
+                                    <div className="p-3.5 pt-0 sm:p-4 sm:pt-0 border-t border-gray-100 bg-gray-50/50 text-xs sm:text-sm text-gray-600 leading-relaxed">
                                         {faq.answer || faq.content}
                                     </div>
                                 )}
@@ -257,38 +257,38 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
 
         case 'contact_block':
             return (
-                <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 my-4 shadow-md">
-                    {block.title && <h5 className="font-bold text-base mb-4 text-indigo-300">{block.title}</h5>}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm">
+                <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6 my-3 sm:my-4 shadow-md">
+                    {block.title && <h5 className="font-bold text-sm sm:text-base mb-3 sm:mb-4 text-indigo-300">{block.title}</h5>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                         {block.email && (
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400 shrink-0">
                                     <FaEnvelope />
                                 </div>
-                                <div>
-                                    <span className="text-[10px] text-gray-400 block uppercase font-bold">Email</span>
-                                    <a href={`mailto:${block.email}`} className="text-indigo-300 hover:underline">{block.email}</a>
+                                <div className="min-w-0">
+                                    <span className="text-[9px] sm:text-[10px] text-gray-400 block uppercase font-bold">Email</span>
+                                    <a href={`mailto:${block.email}`} className="text-indigo-300 hover:underline truncate block">{block.email}</a>
                                 </div>
                             </div>
                         )}
                         {block.phone && (
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400 shrink-0">
                                     <FaPhone />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] text-gray-400 block uppercase font-bold">Phone</span>
+                                    <span className="text-[9px] sm:text-[10px] text-gray-400 block uppercase font-bold">Phone</span>
                                     <span>{block.phone}</span>
                                 </div>
                             </div>
                         )}
                         {block.address && (
-                            <div className="flex items-center gap-3 md:col-span-2">
-                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400">
+                            <div className="flex items-center gap-2.5 sm:gap-3 md:col-span-2">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center text-indigo-400 shrink-0">
                                     <FaMapMarkerAlt />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] text-gray-400 block uppercase font-bold">Address</span>
+                                    <span className="text-[9px] sm:text-[10px] text-gray-400 block uppercase font-bold">Address</span>
                                     <span>{block.address}</span>
                                 </div>
                             </div>
@@ -300,15 +300,15 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
         case 'numbered_steps':
         case 'timeline':
             return (
-                <div className="space-y-4 my-4 pl-4 border-l-2 border-indigo-200">
+                <div className="space-y-3.5 sm:space-y-4 my-3 sm:my-4 pl-3.5 sm:pl-4 border-l-2 border-indigo-200">
                     {(block.steps || block.items || []).map((step, sIdx) => (
                         <div key={sIdx} className="relative">
-                            <div className="absolute -left-[25px] top-0 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+                            <div className="absolute -left-[23px] sm:-left-[25px] top-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold">
                                 {step.stepNumber || sIdx + 1}
                             </div>
-                            <div className="pl-4">
-                                <h5 className="font-bold text-sm text-gray-900">{step.title}</h5>
-                                <p className="text-xs md:text-sm text-gray-600 leading-relaxed mt-0.5">{step.description || step.text}</p>
+                            <div className="pl-3 sm:pl-4">
+                                <h5 className="font-bold text-xs sm:text-sm text-gray-900">{step.title}</h5>
+                                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mt-0.5">{step.description || step.text}</p>
                             </div>
                         </div>
                     ))}
@@ -318,12 +318,12 @@ const RenderBlock = ({ block, openAccordions, toggleAccordion }) => {
         case 'button':
         case 'link':
             return (
-                <div className="my-4">
+                <div className="my-3 sm:my-4">
                     <a
                         href={block.url || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-all"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-all"
                     >
                         <span>{block.text || 'Learn More'}</span>
                         <FaExternalLinkAlt className="text-[10px]" />

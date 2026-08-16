@@ -59,29 +59,28 @@ const PolicyPage = () => {
 
 
     return (
-        <div className="bg-[#f8fafc] min-h-screen py-10 px-4 md:px-8">
-
+        <div className="bg-[#f8fafc] min-h-screen py-4 px-3 sm:py-8 sm:px-6 md:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header Banner */}
-                <div className="bg-gradient-to-r from-[#1a1a4e] via-[#2d1b69] to-[#3c006b] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl relative overflow-hidden">
+                <div className="bg-gradient-to-r from-[#1a1a4e] via-[#2d1b69] to-[#3c006b] rounded-2xl md:rounded-3xl p-5 sm:p-8 md:p-12 mb-4 sm:mb-8 text-white shadow-lg md:shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div className="relative z-10 max-w-3xl">
-                        <span className="text-xs uppercase font-bold text-indigo-300 tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/10">
+                        <span className="text-[10px] sm:text-xs uppercase font-bold text-indigo-300 tracking-widest bg-white/10 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/10">
                             Legal &amp; Policy Document
                         </span>
-                        <h1 className="text-3xl md:text-5xl font-black mt-4 mb-3 tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl font-black mt-2 sm:mt-4 mb-2 sm:mb-3 tracking-tight">
                             {policy?.title || type.replace('-', ' ').toUpperCase()}
                         </h1>
-                        <p className="text-indigo-200 text-sm md:text-base leading-relaxed">
+                        <p className="text-indigo-200 text-xs sm:text-sm md:text-base leading-relaxed">
                             Structured policy terms governing usage, transactions, privacy rights, and user protection on BlueAgle.
                         </p>
                     </div>
                 </div>
 
                 {/* Main Content Layout */}
-                <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Sticky Sidebar Navigation (Desktop) */}
-                    <div className="w-full lg:w-72 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm shrink-0 lg:sticky lg:top-24 space-y-6">
+                <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+                    {/* Sticky Sidebar Navigation (Desktop Only - Hidden in Mobile View) */}
+                    <div className="hidden lg:block lg:w-72 bg-white rounded-3xl p-6 border border-gray-100 shadow-sm shrink-0 lg:sticky lg:top-24 space-y-6">
                         <div>
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">
                                 Policy Documents
@@ -134,7 +133,7 @@ const PolicyPage = () => {
                     </div>
 
                     {/* Policy Content Viewer */}
-                    <div className="flex-1 bg-white rounded-3xl p-6 md:p-10 border border-gray-100 shadow-sm w-full space-y-6">
+                    <div className="flex-1 bg-white rounded-2xl md:rounded-3xl p-3 sm:p-6 md:p-10 border border-gray-100 shadow-xs md:shadow-sm w-full space-y-4 md:space-y-6">
                         {loading ? (
                             <div className="animate-pulse space-y-6 py-6">
                                 <div className="h-8 bg-gray-100 rounded-xl w-2/3"></div>
